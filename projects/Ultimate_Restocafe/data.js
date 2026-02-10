@@ -3,35 +3,35 @@ const products = [
     id: 1,
     name: "Signature Espresso",
     price: 18.00,
-    image: "https://via.placeholder.com/400x300/333/fff?text=Espresso",
+    image: "https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?q=80&w=1374&auto=format&fit=crop",
     category: "Coffee"
   },
   {
     id: 2,
     name: "Avocado Toast",
     price: 35.00,
-    image: "https://via.placeholder.com/400x300/333/fff?text=Avocado+Toast",
+    image: "https://images.unsplash.com/photo-1588137372308-15f75323ca8d?q=80&w=1374&auto=format&fit=crop",
     category: "Breakfast"
   },
   {
     id: 3,
     name: "Iced Spanish Latte",
     price: 24.00,
-    image: "https://via.placeholder.com/400x300/333/fff?text=Spanish+Latte",
+    image: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?q=80&w=1469&auto=format&fit=crop",
     category: "Coffee"
   },
   {
     id: 4,
     name: "Chicken Caesar Salad",
     price: 45.00,
-    image: "https://via.placeholder.com/400x300/333/fff?text=Caesar+Salad",
+    image: "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?q=80&w=1470&auto=format&fit=crop",
     category: "Food"
   },
   {
     id: 5,
     name: "Chocolate Brownie",
     price: 15.00,
-    image: "https://via.placeholder.com/400x300/333/fff?text=Brownie",
+    image: "https://images.unsplash.com/photo-1606313564200-e75d5e30476d?q=80&w=1374&auto=format&fit=crop",
     category: "Dessert"
   }
 ];

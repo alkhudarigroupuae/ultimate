@@ -9,35 +9,35 @@ const products = [
     id: 1,
     name: "Ultimate Hoodie - Black",
     price: 120.00,
-    image: "https://via.placeholder.com/400x300/111/fff?text=Hoodie+Black",
+    image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1374&auto=format&fit=crop",
     category: "Apparel"
   },
   {
     id: 2,
     name: "Ultimate Hoodie - Purple",
     price: 120.00,
-    image: "https://via.placeholder.com/400x300/5D3FD3/fff?text=Hoodie+Purple",
+    image: "https://images.unsplash.com/photo-1578768079052-aa76e52ff62e?q=80&w=1374&auto=format&fit=crop",
     category: "Apparel"
   },
   {
     id: 3,
     name: "Performance Cap",
     price: 45.00,
-    image: "https://via.placeholder.com/400x300/111/fff?text=Cap",
+    image: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=1374&auto=format&fit=crop",
     category: "Accessories"
   },
   {
     id: 4,
     name: "Stainless Steel Water Bottle",
     price: 60.00,
-    image: "https://via.placeholder.com/400x300/111/fff?text=Bottle",
+    image: "https://images.unsplash.com/photo-1602143407151-01114192008b?q=80&w=1374&auto=format&fit=crop",
     category: "Accessories"
   },
   {
     id: 5,
     name: "Gym Bag - Large",
     price: 180.00,
-    image: "https://via.placeholder.com/400x300/111/fff?text=Gym+Bag",
+    image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=1374&auto=format&fit=crop",
     category: "Bags"
   }
 ];

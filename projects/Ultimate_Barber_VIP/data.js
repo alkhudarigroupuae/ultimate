@@ -9,42 +9,42 @@ const services = [
     id: 1,
     name: "Classic Haircut",
     price: 60.00,
-    image: "https://via.placeholder.com/400x300/111/fff?text=Haircut",
+    image: "https://images.unsplash.com/photo-1599351431202-6e0c06e7af1f?q=80&w=1470&auto=format&fit=crop",
     category: "Hair"
   },
   {
     id: 2,
     name: "Beard Trim & Shape",
     price: 40.00,
-    image: "https://via.placeholder.com/400x300/111/fff?text=Beard+Trim",
+    image: "https://images.unsplash.com/photo-1621605815971-fbc98d665033?q=80&w=1470&auto=format&fit=crop",
     category: "Beard"
   },
   {
     id: 3,
     name: "Royal Shave",
     price: 80.00,
-    image: "https://via.placeholder.com/400x300/111/fff?text=Royal+Shave",
+    image: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=1470&auto=format&fit=crop",
     category: "Beard"
   },
   {
     id: 4,
     name: "Hair Coloring",
     price: 150.00,
-    image: "https://via.placeholder.com/400x300/111/fff?text=Coloring",
+    image: "https://images.unsplash.com/photo-1605497788044-5a32c7078486?q=80&w=1374&auto=format&fit=crop",
     category: "Hair"
   },
   {
     id: 5,
     name: "Facial Treatment",
     price: 120.00,
-    image: "https://via.placeholder.com/400x300/111/fff?text=Facial",
+    image: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=1470&auto=format&fit=crop",
     category: "Spa"
   },
   {
     id: 6,
     name: "Head Massage",
     price: 50.00,
-    image: "https://via.placeholder.com/400x300/111/fff?text=Massage",
+    image: "https://images.unsplash.com/photo-1519823551278-64ac92734fb1?q=80&w=1374&auto=format&fit=crop",
     category: "Spa"
   }
 ];
