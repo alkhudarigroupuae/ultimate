@@ -40,6 +40,18 @@
         </div>
     </main>
 
+    <!-- Modal Structure -->
+    <div id="product-modal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal(event)">&times;</button>
+            <img id="modal-img" src="" alt="" class="modal-img">
+            <h2 id="modal-title" class="modal-title"></h2>
+            <div id="modal-price" class="modal-price"></div>
+            <p id="modal-desc" class="modal-desc"></p>
+            <button class="btn" onclick="alert('Subscription request sent!')">Subscribe Now</button>
+        </div>
+    </div>
+
     <script src="data.js"></script>
     <script>
         // Load Hero Banner
@@ -63,15 +75,17 @@
             const btn = document.createElement('button');
             btn.className = 'cat-btn';
             btn.textContent = cat;
-            btn.onclick = () => filterProducts(cat);
+            btn.onclick = (e) => filterProducts(cat, e);
             categoryMenu.appendChild(btn);
         });
 
         // Filter Function
-        function filterProducts(category) {
-            const btns = document.querySelectorAll('.cat-btn');
-            btns.forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+        function filterProducts(category, event) {
+            if (event) {
+                const btns = document.querySelectorAll('.cat-btn');
+                btns.forEach(b => b.classList.remove('active'));
+                event.target.classList.add('active');
+            }
 
             const filtered = category === 'all' 
                 ? products 
@@ -87,6 +101,10 @@
             items.forEach(product => {
                 const card = document.createElement('div');
                 card.className = 'card';
+                // Make card clickable
+                card.onclick = () => openProductDetails(product);
+                card.style.cursor = 'pointer';
+                
                 card.innerHTML = `
                     <div class="card-img">
                         <img src="${product.image}" alt="${product.name}" style="width:100%; height:100%; object-fit:cover;">
@@ -94,19 +112,32 @@
                     <div class="card-content">
                         <h3 class="card-title">${product.name}</h3>
                         <div class="card-price">${product.price.toLocaleString()} SYP</div>
-                        <button class="btn" onclick="addToCart(${product.id})">Subscribe Now</button>
+                        <button class="btn">View Details</button>
                     </div>
                 `;
                 grid.appendChild(card);
             });
         }
 
+        // Modal Functions
+        function openProductDetails(product) {
+            document.getElementById('modal-img').src = product.image;
+            document.getElementById('modal-title').textContent = product.name;
+            document.getElementById('modal-price').textContent = product.price.toLocaleString() + ' SYP';
+            document.getElementById('modal-desc').textContent = `Get full access to ${product.name}. Includes professional guidance and access to all relevant facilities. Join us today and start your journey!`;
+            
+            document.getElementById('product-modal').classList.add('active');
+        }
+
+        function closeModal(event) {
+            // Close if clicked on overlay or close button
+            if (event.target.id === 'product-modal' || event.target.classList.contains('modal-close')) {
+                document.getElementById('product-modal').classList.remove('active');
+            }
+        }
+
         // Initial Render
         renderGrid(products);
-
-        function addToCart(id) {
-            alert('Subscription ' + id + ' selected!');
-        }
     </script>
 </body>
 </html>

@@ -69,6 +69,17 @@
             </div>
         </div>
 
+        <!-- Product Management Settings -->
+        <h2 style="margin-bottom: 1rem;">Manage Products & Services</h2>
+        <div class="card" style="margin-bottom: 3rem; padding: 2rem;">
+            <p style="color: var(--secondary-text); margin-bottom: 1.5rem;">Update prices and images for your fitness packages and products.</p>
+            <div id="products-list" style="display: grid; gap: 1rem;">
+                <!-- Products will be loaded here -->
+            </div>
+            <button onclick="saveProductChanges()" style="background: var(--brand-color); color: #fff; border: none; padding: 0.8rem 2rem; border-radius: 4px; cursor: pointer; font-weight: 600; margin-top: 1.5rem;">Save Product Changes</button>
+            <p id="product-save-message" style="margin-top: 1rem; color: #0f0; display: none;">Products updated successfully!</p>
+        </div>
+
         <h2>Recent Registrations & Orders</h2>
         <div class="card" style="background: transparent; border: none;">
             <table class="dashboard-table">
@@ -165,6 +176,61 @@
 
         // Initialize
         loadSettings();
+        renderProductsEditor();
+
+        function renderProductsEditor() {
+            const container = document.getElementById('products-list');
+            container.innerHTML = '';
+            
+            // products is available globally from data.js
+            if (typeof products === 'undefined') return;
+
+            products.forEach((prod, index) => {
+                const row = document.createElement('div');
+                row.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr 2fr; gap: 1rem; align-items: center; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 4px; border: 1px solid #333;';
+                
+                row.innerHTML = `
+                    <div>
+                        <label style="display: block; font-size: 0.8rem; color: #888; margin-bottom: 0.2rem;">Name</label>
+                        <input type="text" value="${prod.name}" disabled style="width: 100%; padding: 0.5rem; background: #111; border: 1px solid #333; color: #888; border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.8rem; color: #888; margin-bottom: 0.2rem;">Price (AED)</label>
+                        <input type="number" id="price-${index}" value="${prod.price}" style="width: 100%; padding: 0.5rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.8rem; color: #888; margin-bottom: 0.2rem;">Image URL</label>
+                        <input type="text" id="img-${index}" value="${prod.image}" style="width: 100%; padding: 0.5rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px;">
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function saveProductChanges() {
+            if (typeof products === 'undefined') return;
+
+            const newProducts = products.map((prod, index) => {
+                return {
+                    ...prod,
+                    price: parseInt(document.getElementById(`price-${index}`).value),
+                    image: document.getElementById(`img-${index}`).value
+                };
+            });
+
+            // Use the saveProducts helper from data.js
+            if (typeof saveProducts === 'function') {
+                saveProducts(newProducts);
+                
+                const msg = document.getElementById('product-save-message');
+                msg.style.display = 'block';
+                setTimeout(() => {
+                    msg.style.display = 'none';
+                }, 3000);
+            } else {
+                alert('Error: saveProducts function not found in data.js');
+            }
+        }
     </script>
 </body>
 </html>
