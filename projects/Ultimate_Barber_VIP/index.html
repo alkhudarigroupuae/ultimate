@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Barber VIP</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Ultimate Barber VIP</h1>
+        <nav>
+            <a href="index.html" style="color: var(--text-color);">Services</a>
+            <a href="dashboard.html">Admin</a>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <div id="hero-section" class="hero-banner">
+            <div class="hero-content">
+                <h1 id="hero-title"></h1>
+                <p id="hero-subtitle"></p>
+            </div>
+        </div>
+
+        <!-- Category Menu -->
+        <div class="category-menu" id="category-menu">
+            <button class="cat-btn active" onclick="filterServices('all')">All</button>
+            <!-- Categories injected via JS -->
+        </div>
+
+        <div id="service-grid" class="grid">
+            <!-- Services will be loaded here -->
+        </div>
+    </main>
+
+    <script src="data.js"></script>
+    <script>
+        // Load Hero Banner
+        const savedHero = JSON.parse(localStorage.getItem('barber_hero')) || defaultHero;
+        const heroSection = document.getElementById('hero-section');
+        const heroTitle = document.getElementById('hero-title');
+        const heroSubtitle = document.getElementById('hero-subtitle');
+
+        heroTitle.textContent = savedHero.title;
+        heroSubtitle.textContent = savedHero.subtitle;
+        heroSection.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${savedHero.image}')`;
+
+        // Render Categories and Services
+        const grid = document.getElementById('service-grid');
+        const categoryMenu = document.getElementById('category-menu');
+        
+        // Extract unique categories
+        const categories = [...new Set(services.map(s => s.category))];
+        categories.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = 'cat-btn';
+            btn.textContent = cat;
+            btn.onclick = () => filterServices(cat);
+            categoryMenu.appendChild(btn);
+        });
+
+        function renderServices(items) {
+            grid.innerHTML = '';
+            items.forEach((service, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.animation = `fadeUp 0.5s ease-out forwards ${index * 0.1}s`;
+                card.style.opacity = '0'; // Initial state for animation
+                card.innerHTML = `
+                    <div class="card-img">
+                        <img src="${service.image}" alt="${service.name}" style="width:100%; height:100%; object-fit:cover;">
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">${service.name}</h3>
+                        <div class="card-price">${service.price.toFixed(2)} AED</div>
+                        <button class="btn" onclick="bookService(${service.id})">Book Now</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterServices(category) {
+            // Update active button
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent === category || (category === 'all' && btn.textContent === 'All')) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Filter services
+            if (category === 'all') {
+                renderServices(services);
+            } else {
+                const filtered = services.filter(s => s.category === category);
+                renderServices(filtered);
+            }
+        }
+
+        function bookService(id) {
+            alert('Booking feature coming soon!');
+        }
+
+        // Initial Render
+        renderServices(services);
+    </script>
+</body>
+</html>

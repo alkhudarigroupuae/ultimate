@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Ultimate Store</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Store Admin</h1>
+        <nav>
+            <a href="index.html">View Store</a>
+            <a href="dashboard.html" style="color: var(--text-color);">Dashboard</a>
+            <a href="#">Inventory</a>
+            <a href="#">Orders</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="grid" style="margin-bottom: 3rem; grid-template-columns: repeat(4, 1fr);">
+            <div class="card" style="padding: 1.5rem;">
+                <div style="color: var(--secondary-text); font-size: 0.9rem;">Total Sales</div>
+                <div style="font-size: 1.8rem; font-weight: 700; margin-top: 0.5rem;">AED 8,920</div>
+            </div>
+            <div class="card" style="padding: 1.5rem;">
+                <div style="color: var(--secondary-text); font-size: 0.9rem;">Orders Today</div>
+                <div style="font-size: 1.8rem; font-weight: 700; margin-top: 0.5rem;">15</div>
+            </div>
+            <div class="card" style="padding: 1.5rem;">
+                <div style="color: var(--secondary-text); font-size: 0.9rem;">Low Stock Items</div>
+                <div style="font-size: 1.8rem; font-weight: 700; margin-top: 0.5rem; color: #ff4444;">3</div>
+            </div>
+            <div class="card" style="padding: 1.5rem;">
+                <div style="color: var(--secondary-text); font-size: 0.9rem;">Total Customers</div>
+                <div style="font-size: 1.8rem; font-weight: 700; margin-top: 0.5rem;">320</div>
+            </div>
+        </div>
+
+        <!-- Hero Banner Settings -->
+        <h2 style="margin-bottom: 1rem;">Website Hero Banner Settings</h2>
+        <div class="card" style="margin-bottom: 3rem; padding: 2rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--secondary-text);">Banner Title</label>
+                        <input type="text" id="hero-title-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px;" placeholder="Enter title...">
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--secondary-text);">Banner Subtitle</label>
+                        <input type="text" id="hero-subtitle-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px;" placeholder="Enter subtitle...">
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--secondary-text);">Banner Image URL</label>
+                        <input type="text" id="hero-image-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px;" placeholder="Enter image URL...">
+                    </div>
+                    <button onclick="saveHeroSettings()" style="background: var(--brand-color); color: #fff; border: none; padding: 0.8rem 2rem; border-radius: 4px; cursor: pointer; font-weight: 600;">Save Changes</button>
+                    <p id="save-message" style="margin-top: 1rem; color: #0f0; display: none;">Settings saved successfully!</p>
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--secondary-text);">Preview</label>
+                    <div id="hero-preview" style="width: 100%; height: 250px; background-color: #000; background-size: cover; background-position: center; border-radius: 8px; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border: 1px solid #333;">
+                        <div style="background: rgba(0,0,0,0.5); padding: 1rem; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                            <h3 id="preview-title" style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #fff;">Title</h3>
+                            <p id="preview-subtitle" style="color: #ccc;">Subtitle</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2>Recent Orders</h2>
+        <div class="card" style="background: transparent; border: none;">
+            <table class="dashboard-table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>#ST-4021</td>
+                        <td>Hamza R.</td>
+                        <td>1x Ultimate Hoodie - Black</td>
+                        <td>120.00 AED</td>
+                        <td><span class="status-badge">Processing</span></td>
+                        <td>10 mins ago</td>
+                    </tr>
+                    <tr>
+                        <td>#ST-4020</td>
+                        <td>Sarah J.</td>
+                        <td>2x Water Bottle</td>
+                        <td>120.00 AED</td>
+                        <td><span class="status-badge" style="background: #222; color: #888;">Shipped</span></td>
+                        <td>2 hours ago</td>
+                    </tr>
+                    <tr>
+                        <td>#ST-4019</td>
+                        <td>Mike T.</td>
+                        <td>1x Gym Bag</td>
+                        <td>180.00 AED</td>
+                        <td><span class="status-badge" style="background: #222; color: #888;">Delivered</span></td>
+                        <td>Yesterday</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+    <script src="data.js"></script>
+    <script>
+        // Load settings
+        const titleInput = document.getElementById('hero-title-input');
+        const subtitleInput = document.getElementById('hero-subtitle-input');
+        const imageInput = document.getElementById('hero-image-input');
+        const previewTitle = document.getElementById('preview-title');
+        const previewSubtitle = document.getElementById('preview-subtitle');
+        const heroPreview = document.getElementById('hero-preview');
+
+        function loadSettings() {
+            const savedHero = JSON.parse(localStorage.getItem('store_hero')) || (typeof defaultHero !== 'undefined' ? defaultHero : {
+                title: "EQUIP YOUR GREATNESS",
+                subtitle: "Premium Gear for the Ultimate Athlete",
+                image: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1470&auto=format&fit=crop"
+            });
+
+            titleInput.value = savedHero.title;
+            subtitleInput.value = savedHero.subtitle;
+            imageInput.value = savedHero.image;
+
+            updatePreview();
+        }
+
+        function updatePreview() {
+            previewTitle.textContent = titleInput.value;
+            previewSubtitle.textContent = subtitleInput.value;
+            heroPreview.style.backgroundImage = `url('${imageInput.value}')`;
+        }
+
+        function saveHeroSettings() {
+            const newHero = {
+                title: titleInput.value,
+                subtitle: subtitleInput.value,
+                image: imageInput.value
+            };
+            localStorage.setItem('store_hero', JSON.stringify(newHero));
+            
+            const msg = document.getElementById('save-message');
+            msg.style.display = 'block';
+            setTimeout(() => {
+                msg.style.display = 'none';
+            }, 3000);
+            
+            updatePreview();
+        }
+
+        // Add event listeners for live preview
+        titleInput.addEventListener('input', updatePreview);
+        subtitleInput.addEventListener('input', updatePreview);
+        imageInput.addEventListener('input', updatePreview);
+
+        // Initialize
+        loadSettings();
+    </script>
+</body>
+</html>
