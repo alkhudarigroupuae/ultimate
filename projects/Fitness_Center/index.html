@@ -8,7 +8,12 @@
 </head>
 <body>
     <header>
-        <h1>Fitness Center</h1>
+        <div style="display:flex;align-items:center;gap:8px;">
+            <a href="../index.html" class="admin-home admin-only" title="Main Hub" style="display:none">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            </a>
+            <h1>Fitness Center</h1>
+        </div>
         <nav>
             <a href="index.html" style="color: var(--text-color);">Gym & Shop</a>
             <a href="dashboard.html">Admin</a>
@@ -39,6 +44,7 @@
             <!-- Products will be loaded here -->
         </div>
     </main>
+    <input type="file" id="vercel-file" accept="image/*" style="display:none">
 
     <!-- Modal Structure -->
     <div id="product-modal" class="modal-overlay" onclick="closeModal(event)">
@@ -48,12 +54,15 @@
             <h2 id="modal-title" class="modal-title"></h2>
             <div id="modal-price" class="modal-price"></div>
             <p id="modal-desc" class="modal-desc"></p>
-            <button class="btn" onclick="alert('Subscription request sent!')">Subscribe Now</button>
         </div>
     </div>
 
     <script src="data.js"></script>
     <script>
+        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        if (isAdmin) {
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'flex');
+        }
         // Load Hero Banner
         const savedHero = JSON.parse(localStorage.getItem('fitness_hero')) || defaultHero;
         const heroSection = document.getElementById('hero-section');
@@ -65,7 +74,8 @@
         heroSubtitle.textContent = savedHero.subtitle;
 
         // Render Categories
-        const categories = ['all', ...new Set(products.map(p => p.category))];
+        let listAll = JSON.parse(localStorage.getItem('fitness_products')) || products;
+        const categories = ['all', ...new Set(listAll.map(p => p.category))];
         const categoryMenu = document.getElementById('category-menu');
         
         // Clear existing buttons except 'All'
@@ -88,8 +98,8 @@
             }
 
             const filtered = category === 'all' 
-                ? products 
-                : products.filter(p => p.category === category);
+                ? listAll 
+                : listAll.filter(p => p.category === category);
             
             renderGrid(filtered);
         }
@@ -107,7 +117,8 @@
                 
                 card.innerHTML = `
                     <div class="card-img">
-                        <img src="${product.image}" alt="${product.name}" style="width:100%; height:100%; object-fit:cover;">
+                        <img src="${product.image}" alt="${product.name}" style="width:100%; height:100%; object-fit:cover;" loading="lazy" decoding="async">
+                        ${isAdmin ? `<button class="admin-edit" data-id="${product.id}" style="position:absolute;top:8px;right:8px;background:#8A2BE2;color:#fff;border:none;padding:6px 8px;border-radius:4px;cursor:pointer;">Change</button>` : ``}
                     </div>
                     <div class="card-content">
                         <h3 class="card-title">${product.name}</h3>
@@ -136,8 +147,42 @@
             }
         }
 
-        // Initial Render
-        renderGrid(products);
+        async function uploadToVercel(file) {
+            const resp = await fetch('/api/blob-upload', {
+                method: 'POST',
+                headers: { 'x-filename': file.name, 'content-type': file.type || 'application/octet-stream' },
+                body: file
+            });
+            if (!resp.ok) throw new Error();
+            const data = await resp.json();
+            return data.url;
+        }
+
+        if (isAdmin) {
+            const fileInput = document.getElementById('vercel-file');
+            let pendingId = null;
+            grid.addEventListener('click', (e) => {
+                const btn = e.target.closest('.admin-edit');
+                if (!btn) return;
+                pendingId = parseInt(btn.dataset.id, 10);
+                fileInput.value = '';
+                fileInput.click();
+                e.stopPropagation();
+            });
+            fileInput.addEventListener('change', async () => {
+                const file = fileInput.files[0];
+                if (!file || !pendingId) return;
+                try {
+                    const url = await uploadToVercel(file);
+                    const idx = listAll.findIndex(p => p.id === pendingId);
+                    if (idx !== -1) {
+                        listAll[idx].image = url;
+                        localStorage.setItem('fitness_products', JSON.stringify(listAll));
+                        renderGrid(listAll);
+                    }
+                } catch (e) {}
+            });
+        }
     </script>
 </body>
 </html>

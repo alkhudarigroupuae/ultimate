@@ -324,6 +324,11 @@
             <div class="input-group">
                 <label>Image URL</label>
                 <input type="text" id="edit-image">
+                <div style="margin-top:.5rem; display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
+                    <input type="file" id="vercel-file" accept="image/*" style="color:#ccc;">
+                    <button class="btn" id="vercel-upload" style="width:auto;">Upload to Vercel</button>
+                    <div id="vercel-status" style="color:#aaa; font-size:.9rem;"></div>
+                </div>
             </div>
             <div class="input-group">
                 <label>Category</label>
@@ -353,6 +358,7 @@
             if (user === 'admin' && pass === 'admin123') {
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('dashboard').style.display = 'block';
+                localStorage.setItem('isAdmin', 'true');
                 loadAllData();
             } else {
                 document.getElementById('login-error').style.display = 'block';
@@ -360,6 +366,7 @@
         }
 
         function logout() {
+            localStorage.removeItem('isAdmin');
             location.reload();
         }
 
@@ -552,6 +559,43 @@
                 renderList(section, currentData[section]);
             }
         }
+
+        // Vercel Blob integration
+        async function uploadToVercel(file) {
+            const resp = await fetch('/api/blob-upload', {
+                method: 'POST',
+                headers: {
+                    'x-filename': file.name,
+                    'content-type': file.type || 'application/octet-stream'
+                },
+                body: file
+            });
+            if (!resp.ok) throw new Error('Upload failed');
+            const data = await resp.json();
+            return data.url;
+        }
+
+        function bindVercelUpload() {
+            const btn = document.getElementById('vercel-upload');
+            if (!btn) return;
+            btn.addEventListener('click', async () => {
+                const statusEl = document.getElementById('vercel-status');
+                statusEl.textContent = '';
+                const file = document.getElementById('vercel-file')?.files?.[0];
+                if (!file) { statusEl.textContent = 'اختر صورة'; return; }
+                if (file.size > 20 * 1024 * 1024) { statusEl.textContent = 'الملف أكبر من 20MB'; return; }
+                statusEl.textContent = 'جاري الرفع...';
+                try {
+                    const url = await uploadToVercel(file);
+                    document.getElementById('edit-image').value = url;
+                    statusEl.textContent = 'تم الرفع';
+                } catch (e) {
+                    statusEl.textContent = 'فشل الرفع (تحقق من النشر على Vercel)';
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', bindVercelUpload);
 
         // Initial Load (Wait for user interaction to avoid issues?)
         // Better to load only after login

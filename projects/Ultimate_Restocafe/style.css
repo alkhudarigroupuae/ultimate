@@ -43,6 +43,19 @@ nav a:hover {
   color: var(--text-color);
 }
 
+.admin-only { display: none; }
+.home-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  text-decoration: none;
+  margin-right: 0.5rem;
+  opacity: 0.8;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.home-icon:hover { opacity: 1; transform: scale(1.05); }
+
 main {
   padding: 2rem;
   max-width: 1200px;

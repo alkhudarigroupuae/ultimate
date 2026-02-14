@@ -52,6 +52,19 @@ main {
   margin: 0 auto;
 }
 
+.admin-home {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  text-decoration: none;
+  margin-right: 0.5rem;
+  opacity: 0.8;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.admin-home:hover { opacity: 1; transform: scale(1.05); }
+.admin-only { display: none; }
+
 /* Animations */
 @keyframes slideIn {
   from { opacity: 0; transform: translateY(-20px); }
