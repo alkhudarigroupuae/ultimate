@@ -1,3 +1,9 @@
+const defaultHero = {
+  title: "TASTE THE EXCELLENCE",
+  subtitle: "Premium Coffee & Exquisite Dining",
+  image: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=1470&auto=format&fit=crop"
+};
+
 const products = [
   {
     id: 1,
@@ -36,8 +42,21 @@ const products = [
   }
 ];
 
-const defaultHero = {
-  title: "TASTE THE EXCELLENCE",
-  subtitle: "Premium Coffee & Exquisite Dining",
-  image: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=1470&auto=format&fit=crop"
-};
+// Initialize products from LocalStorage or default
+let productsData = JSON.parse(localStorage.getItem('restocafe_products')) || products;
+
+// Helper to save products
+function saveProducts(newProducts) {
+    productsData = newProducts;
+    localStorage.setItem('restocafe_products', JSON.stringify(productsData));
+    return true;
+}
+
+// Ensure defaultHero is also customizable if needed
+let heroData = JSON.parse(localStorage.getItem('restocafe_hero')) || defaultHero;
+
+function saveHero(newHero) {
+    heroData = newHero;
+    localStorage.setItem('restocafe_hero', JSON.stringify(heroData));
+    return true;
+}

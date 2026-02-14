@@ -41,3 +41,22 @@ const products = [
     category: "Bags"
   }
 ];
+
+// Initialize products from LocalStorage or default
+let productsData = JSON.parse(localStorage.getItem('store_products')) || products;
+
+// Helper to save products
+function saveProducts(newProducts) {
+    productsData = newProducts;
+    localStorage.setItem('store_products', JSON.stringify(productsData));
+    return true;
+}
+
+// Ensure defaultHero is also customizable if needed
+let heroData = JSON.parse(localStorage.getItem('store_hero')) || defaultHero;
+
+function saveHero(newHero) {
+    heroData = newHero;
+    localStorage.setItem('store_hero', JSON.stringify(heroData));
+    return true;
+}

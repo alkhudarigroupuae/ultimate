@@ -48,3 +48,22 @@ const services = [
     category: "Spa"
   }
 ];
+
+// Initialize services from LocalStorage or default
+let servicesData = JSON.parse(localStorage.getItem('barber_services')) || services;
+
+// Helper to save services
+function saveServices(newServices) {
+    servicesData = newServices;
+    localStorage.setItem('barber_services', JSON.stringify(servicesData));
+    return true;
+}
+
+// Ensure defaultHero is also customizable if needed
+let heroData = JSON.parse(localStorage.getItem('barber_hero')) || defaultHero;
+
+function saveHero(newHero) {
+    heroData = newHero;
+    localStorage.setItem('barber_hero', JSON.stringify(heroData));
+    return true;
+}
