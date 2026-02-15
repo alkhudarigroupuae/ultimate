@@ -6,7 +6,8 @@
     "upload:dev": "node dev-upload-server.js"
   },
   "dependencies": {
-    "@vercel/blob": "^0.21.0"
+    "@vercel/blob": "^0.21.0",
+    "botid": "^1.5.10"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2"
