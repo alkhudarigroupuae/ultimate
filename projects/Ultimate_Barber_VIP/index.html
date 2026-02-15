@@ -5,6 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ultimate Barber VIP</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        body { padding-bottom: 4rem; }
+        .floating-3cx-btn {
+            position: fixed;
+            right: 1.25rem;
+            bottom: 5.5rem;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 9999px;
+            background: #10b981;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px rgba(16,185,129,0.6);
+            z-index: 1000;
+            cursor: pointer;
+        }
+        .floating-3cx-btn svg {
+            width: 20px;
+            height: 20px;
+            color: #000;
+        }
+        .global-footer {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 3.5rem;
+            background: rgba(0, 0, 0, 0.85);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2.5rem;
+            z-index: 900;
+        }
+        .global-footer a {
+            color: #e5e5e5;
+            text-decoration: none;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .global-footer-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #111827;
+            border: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.7rem;
+        }
+        .footer-label {
+            text-transform: uppercase;
+            letter-spacing: .08em;
+        }
+        @media (max-width: 640px) {
+            .global-footer { gap: 1.5rem; }
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -30,8 +94,6 @@
             <a href="../index.html" style="color: var(--secondary-text); font-size: 0.9rem; border:1px solid #333; padding:4px 8px; text-transform:uppercase; letter-spacing:.02em;">Home</a>
             <a href="index.html" style="color: var(--text-color); margin-left:12px;">Services</a>
             <a href="dashboard.html">Admin</a>
-            <a href="https://1348.3cx.cloud/unlimited" target="_blank" rel="noopener" style="margin-left:12px;border:1px solid #5D3FD3;padding:4px 10px;font-size:0.85rem;text-transform:uppercase;letter-spacing:.06em;">Call Center</a>
-            <a href="tel:0982222494" style="margin-left:12px;color: var(--secondary-text); font-size: 0.9rem;">0982222494</a>
         </nav>
     </header>
 
@@ -58,6 +120,29 @@
     <input type="file" id="vercel-file" accept="image/*" style="display:none">
 
     <script src="data.js"></script>
+    <a href="https://1348.3cx.cloud/unlimited" target="_blank" rel="noopener" class="floating-3cx-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 5.5C2 4.12 3.12 3 4.5 3h1.05c.6 0 1.13.34 1.38.88l1.2 2.63a1.5 1.5 0 01-.27 1.6l-1.02 1.12a.75.75 0 00-.12.83 9.06 9.06 0 004.41 4.41.75.75 0 00.83-.12l1.12-1.02a1.5 1.5 0 011.6-.27l2.63 1.2c.54.25.88.78.88 1.38V19.5c0 1.38-1.12 2.5-2.5 2.5H18C9.72 22 2 14.28 2 6v-.5z" />
+        </svg>
+    </a>
+    <div class="global-footer">
+        <a href="https://1348.3cx.cloud/unlimited" target="_blank" rel="noopener">
+            <span class="global-footer-icon">3CX</span>
+            <span class="footer-label">Free Call</span>
+        </a>
+        <a href="tel:0982222494">
+            <span class="global-footer-icon">TEL</span>
+            <span class="footer-label">Mobile</span>
+        </a>
+        <a href="https://www.facebook.com/share/1APc8Pdf7J/?mibextid=wwXIfr" target="_blank" rel="noopener">
+            <span class="global-footer-icon">f</span>
+            <span class="footer-label">Facebook</span>
+        </a>
+        <a href="https://www.instagram.com/ultimate.fitness_center?igsh=dnNpcWdpNnF1MzB1" target="_blank" rel="noopener">
+            <span class="global-footer-icon">IG</span>
+            <span class="footer-label">Instagram</span>
+        </a>
+    </div>
     <script>
         const isAdmin = localStorage.getItem('isAdmin') === 'true';
         if (isAdmin) {
