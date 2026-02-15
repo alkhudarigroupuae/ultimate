@@ -101,8 +101,16 @@ const defaultProducts = [
   }
 ];
 
-// Initialize products from LocalStorage or default
-let products = JSON.parse(localStorage.getItem('fitness_products')) || defaultProducts;
+// Initialize products from LocalStorage or default (fallback if empty or invalid)
+let productsStorage;
+try {
+    const raw = localStorage.getItem('fitness_products');
+    productsStorage = raw ? JSON.parse(raw) : null;
+} catch (_) {
+    productsStorage = null;
+}
+
+let products = Array.isArray(productsStorage) && productsStorage.length ? productsStorage : defaultProducts;
 
 // Helper to save products (can be used by dashboard)
 function saveProducts(newProducts) {

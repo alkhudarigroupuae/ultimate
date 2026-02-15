@@ -30,6 +30,7 @@
             <a href="../index.html" style="color: var(--secondary-text); font-size: 0.9rem; border:1px solid #333; padding:4px 8px; text-transform:uppercase; letter-spacing:.02em;">Home</a>
             <a href="index.html" style="color: var(--text-color); margin-left:12px;">Gym & Shop</a>
             <a href="dashboard.html">Admin</a>
+            <a href="https://1348.3cx.cloud/unlimited" target="_blank" rel="noopener" style="margin-left:12px;border:1px solid #5D3FD3;padding:4px 10px;font-size:0.85rem;text-transform:uppercase;letter-spacing:.06em;">Call Center</a>
         </nav>
     </header>
 
@@ -86,8 +87,8 @@
         heroTitle.textContent = savedHero.title;
         heroSubtitle.textContent = savedHero.subtitle;
 
-        // Render Categories
-        let listAll = JSON.parse(localStorage.getItem('fitness_products')) || products;
+        // Render Categories (use products from data.js which already handles LocalStorage)
+        let listAll = products;
         const categories = ['all', ...new Set(listAll.map(p => p.category))];
         const categoryMenu = document.getElementById('category-menu');
         

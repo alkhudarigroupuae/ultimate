@@ -29,6 +29,7 @@
         <nav>
             <a href="../index.html" style="color: var(--secondary-text); font-size: 0.9rem; border:1px solid #333; padding:4px 8px; text-transform:uppercase; letter-spacing:.02em;">Home</a>
             <a href="dashboard.html" style="margin-left:12px;">Dashboard</a>
+            <a href="https://1348.3cx.cloud/unlimited" target="_blank" rel="noopener" style="margin-left:12px;border:1px solid #5D3FD3;padding:4px 10px;font-size:0.85rem;text-transform:uppercase;letter-spacing:.06em;">Call Center</a>
         </nav>
     </header>
 
@@ -43,10 +44,7 @@
         </div>
 
         <!-- Category Menu -->
-        <div class="category-menu" id="category-menu">
-            <button class="cat-btn active" onclick="filterProducts('all')">All</button>
-            <!-- Categories will be loaded here -->
-        </div>
+        <div class="category-menu" id="category-menu"></div>
 
         <div style="margin-bottom: 2rem;">
             <h2>Our Menu</h2>
@@ -81,9 +79,32 @@
             document.getElementById('change-hero').style.display = 'inline-flex';
         }
 
-        // Render Categories
-        let listAll = JSON.parse(localStorage.getItem('restocafe_products')) || products;
-        const categories = ['all', ...new Set(listAll.map(p => p.category))];
+        // Render Categories (merge defaults with any saved overrides in LocalStorage)
+        let storedRestocafe;
+        try {
+            const raw = localStorage.getItem('restocafe_products');
+            storedRestocafe = raw ? JSON.parse(raw) : null;
+        } catch (_) {
+            storedRestocafe = null;
+        }
+        const storedMap = Array.isArray(storedRestocafe) ? new Map(storedRestocafe.map(p => [p.id, p])) : new Map();
+        let listAll = products.map(p => storedMap.has(p.id) ? { ...p, ...storedMap.get(p.id) } : p);
+        const CATEGORY_LABELS = [
+            'Iced Coffee',
+            'Cocktail',
+            'Emperor',
+            'Juices',
+            'Milkshake',
+            'Crepe',
+            'Fruit Salads',
+            'Energy Drinks',
+            'Soft Drinks',
+            'Pancakes',
+            'Waffles',
+            'Healthy Hot Drinks',
+            'Coffee',
+            'Hot Drinks'
+        ];
         const categoryMenu = document.getElementById('category-menu');
         
         // Clear existing buttons except 'All'
@@ -91,7 +112,7 @@
         const allBtn = categoryMenu.querySelector('.cat-btn');
         allBtn.addEventListener('click', (e) => filterProducts('all', e));
         
-        categories.filter(c => c !== 'all').forEach(cat => {
+        CATEGORY_LABELS.forEach(cat => {
             const btn = document.createElement('button');
             btn.className = 'cat-btn';
             btn.textContent = cat;
@@ -128,7 +149,7 @@
                     </div>
                     <div class="card-content">
                         <h3 class="card-title">${product.name}</h3>
-                        <div class="card-price">${product.price.toLocaleString()} AED</div>
+                        <div class="card-price">${product.price.toLocaleString()} SYP</div>
                     </div>
                 `;
                 card.addEventListener('click', (e) => {
@@ -152,7 +173,7 @@
                 <div style="width:100%;height:220px;background:#000;border:1px solid #333;margin-bottom:1rem;display:flex;align-items:center;justify-content:center;">
                     <img src="${product.image}" alt="${product.name}" style="max-width:100%;max-height:100%;object-fit:contain;" onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
                 </div>
-                <div style="font-size:1.1rem;font-weight:600;margin-bottom:.5rem;">${product.price.toLocaleString()} AED</div>
+                <div style="font-size:1.1rem;font-weight:600;margin-bottom:.5rem;">${product.price.toLocaleString()} SYP</div>
                 <p style="color:#aaa;font-size:.9rem;margin:0;">Premium item from Ultimate Restocafé menu.</p>
             `;
             overlay.appendChild(box);
