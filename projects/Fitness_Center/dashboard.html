@@ -7,13 +7,48 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <script>
+        (function adminGate(){
+            try {
+                const KEY = 'isAdmin';
+                if (localStorage.getItem(KEY) === 'true') return;
+                const overlay = document.createElement('div');
+                overlay.id = 'admin-gate';
+                overlay.style.cssText = 'position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:9999;color:#fff;';
+                overlay.innerHTML = '<div style="border:1px solid #333;padding:1.25rem;width:min(360px,90vw);background:#111;">'
+                    + '<h3 style=\"margin:0 0 .75rem 0;\">Admin Access</h3>'
+                    + '<input type=\"password\" id=\"admin-pass\" placeholder=\"Password\" style=\"width:100%;padding:.75rem;background:#000;border:1px solid #333;color:#fff;border-radius:0px;\">'
+                    + '<button id=\"admin-login\" style=\"margin-top:.75rem;width:100%;padding:.75rem;background:#5D3FD3;color:#fff;border:none;border-radius:0px;cursor:pointer;transition:opacity .15s;\">Enter</button>'
+                    + '<div id=\"admin-msg\" style=\"margin-top:.5rem;color:#aaa;font-size:.9rem;\"></div>'
+                    + '</div>';
+                document.addEventListener('DOMContentLoaded', () => document.body.appendChild(overlay));
+                function verify(pass){ return pass === '2468'; }
+                document.addEventListener('click', async (e) => {
+                    if (e.target && e.target.id === 'admin-login') {
+                        const pass = document.getElementById('admin-pass').value;
+                        if (verify(pass)) {
+                            localStorage.setItem(KEY, 'true');
+                            document.getElementById('admin-gate')?.remove();
+                        } else {
+                            const msg = document.getElementById('admin-msg'); if (msg) msg.textContent = 'Wrong password';
+                        }
+                    }
+                });
+                document.addEventListener('mouseover', (e) => {
+                    if (e.target && e.target.id === 'admin-login') e.target.style.opacity = '0.9';
+                });
+                document.addEventListener('mouseout', (e) => {
+                    if (e.target && e.target.id === 'admin-login') e.target.style.opacity = '1';
+                });
+            } catch(_) {}
+        })();
+    </script>
     <header>
         <h1>Fitness Admin</h1>
         <nav>
             <a href="index.html">View Shop</a>
             <a href="dashboard.html" style="color: var(--text-color);">Dashboard</a>
-            <a href="#">Members</a>
-            <a href="#">Financials</a>
+            <a href="#members">Members</a>
         </nav>
     </header>
 
@@ -44,22 +79,30 @@
                 <div>
                     <div style="margin-bottom: 1.5rem;">
                         <label style="display: block; margin-bottom: 0.5rem; color: var(--secondary-text);">Banner Title</label>
-                        <input type="text" id="hero-title-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px;" placeholder="Enter title...">
+                        <input type="text" id="hero-title-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 0px;" placeholder="Enter title...">
                     </div>
                     <div style="margin-bottom: 1.5rem;">
                         <label style="display: block; margin-bottom: 0.5rem; color: var(--secondary-text);">Banner Subtitle</label>
-                        <input type="text" id="hero-subtitle-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px;" placeholder="Enter subtitle...">
+                        <input type="text" id="hero-subtitle-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 0px;" placeholder="Enter subtitle...">
                     </div>
                     <div style="margin-bottom: 1.5rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; color: var(--secondary-text);">Banner Image URL</label>
-                        <input type="text" id="hero-image-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px;" placeholder="Enter image URL...">
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--secondary-text);">Banner Image</label>
+                        <div style="display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;">
+                            <img id="hero-image-preview" alt="" style="width:160px;height:100px;object-fit:cover;border:1px solid #333;">
+                            <input type="text" id="hero-image-input" style="display:none;">
+                            <input type="file" id="vercel-file" accept="image/*" style="color:#ccc;">
+                            <button class="btn" id="vercel-upload" style="width:auto; border-radius:0px;">Upload</button>
+                            <button class="btn" id="copy-hero-url" style="width:auto; background:#222;">Copy Link</button>
+                            <div id="vercel-status" style="color:#aaa; font-size:.9rem;"></div>
+                        </div>
                     </div>
-                    <button onclick="saveHeroSettings()" style="background: var(--brand-color); color: #fff; border: none; padding: 0.8rem 2rem; border-radius: 4px; cursor: pointer; font-weight: 600;">Save Changes</button>
+                    <button onclick="saveHeroSettings()" style="background: #5D3FD3; color: #fff; border: none; padding: 0.8rem 2rem; border-radius: 0px; cursor: pointer; font-weight: 600;">Save Changes</button>
                     <p id="save-message" style="margin-top: 1rem; color: #0f0; display: none;">Settings saved successfully!</p>
                 </div>
                 <div>
                     <label style="display: block; margin-bottom: 0.5rem; color: var(--secondary-text);">Preview</label>
-                    <div id="hero-preview" style="width: 100%; height: 250px; background-color: #000; background-size: cover; background-position: center; border-radius: 8px; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border: 1px solid #333;">
+                    <div id="hero-preview" style="width: 100%; height: 250px; background-color: #000; background-size: cover; background-position: center; border-radius: 0px; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border: 1px solid #333; overflow:hidden;">
+                        <video id="hero-video" autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;"></video>
                         <div style="background: rgba(0,0,0,0.5); padding: 1rem; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                             <h3 id="preview-title" style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #fff;">Title</h3>
                             <p id="preview-subtitle" style="color: #ccc;">Subtitle</p>
@@ -76,9 +119,30 @@
             <div id="products-list" style="display: grid; gap: 1rem;">
                 <!-- Products will be loaded here -->
             </div>
-            <button onclick="saveProductChanges()" style="background: var(--brand-color); color: #fff; border: none; padding: 0.8rem 2rem; border-radius: 4px; cursor: pointer; font-weight: 600; margin-top: 1.5rem;">Save Product Changes</button>
+            <button onclick="saveProductChanges()" style="background: var(--brand-color); color: #fff; border: none; padding: 0.8rem 2rem; border-radius: 0px; cursor: pointer; font-weight: 600; margin-top: 1.5rem;">Save Product Changes</button>
             <p id="product-save-message" style="margin-top: 1rem; color: #0f0; display: none;">Products updated successfully!</p>
         </div>
+
+        <h2 id="members" style="margin-bottom: 1rem; display:flex; align-items:center; justify-content:space-between;">
+            <span>Members</span>
+            <button id="add-member-btn" class="btn" style="width:auto; border-radius:0px; background:#5D3FD3;">+ Add Member</button>
+        </h2>
+        <div class="card" style="margin-bottom: 3rem; padding: 2rem;">
+            <table class="dashboard-table">
+                <thead>
+                    <tr>
+                        <th>Member ID</th>
+                        <th>Name</th>
+                        <th>Plan</th>
+                        <th>Status</th>
+                        <th style="width:120px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="members-body"></tbody>
+            </table>
+        </div>
+
+        
 
         <h2>Recent Registrations & Orders</h2>
         <div class="card" style="background: transparent; border: none;">
@@ -144,12 +208,23 @@
             imageInput.value = savedHero.image;
 
             updatePreview();
+            const imgPrev = document.getElementById('hero-image-preview'); if (imgPrev) imgPrev.src = imageInput.value || '';
         }
 
         function updatePreview() {
             previewTitle.textContent = titleInput.value;
             previewSubtitle.textContent = subtitleInput.value;
-            heroPreview.style.backgroundImage = `url('${imageInput.value}')`;
+            const hv = document.getElementById('hero-video');
+            const val = imageInput.value || '';
+            const isVid = val.includes('.mp4') || val.startsWith('data:video');
+            if (isVid) {
+                heroPreview.style.backgroundImage = 'none';
+                if (hv) { hv.src = val; hv.style.display = 'block'; }
+            } else {
+                if (hv) { hv.pause(); hv.style.display = 'none'; hv.removeAttribute('src'); }
+                heroPreview.style.backgroundImage = `url('${val}')`;
+            }
+            const imgPrev = document.getElementById('hero-image-preview'); if (imgPrev) imgPrev.src = imageInput.value || '';
         }
 
         function saveHeroSettings() {
@@ -174,9 +249,89 @@
         subtitleInput.addEventListener('input', updatePreview);
         imageInput.addEventListener('input', updatePreview);
 
+        async function uploadToVercel(file) {
+            const base = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:3001' : '';
+            const resp = await fetch(base + '/api/blob-upload', {
+                method: 'POST',
+                headers: {
+                    'x-filename': file.name,
+                    'content-type': file.type || 'application/octet-stream'
+                },
+                body: file
+            });
+            if (!resp.ok) throw new Error('Upload failed');
+            const data = await resp.json();
+            return data.url;
+        }
+
+        (function bindVercelUpload(){
+            const btn = document.getElementById('vercel-upload');
+            if (!btn) return;
+            btn.addEventListener('click', async () => {
+                const statusEl = document.getElementById('vercel-status');
+                statusEl.textContent = '';
+                const fileInput = document.getElementById('vercel-file');
+                if (fileInput) fileInput.setAttribute('accept','image/*,video/mp4');
+                const file = fileInput?.files?.[0];
+                if (!file) { statusEl.textContent = 'Choose an image'; return; }
+                if (file.size > 20 * 1024 * 1024) { statusEl.textContent = 'File exceeds 20MB'; return; }
+                statusEl.textContent = 'Uploading...';
+                try {
+                    const url = await uploadToVercel(file);
+                    imageInput.value = url;
+                    updatePreview();
+                    statusEl.textContent = 'Uploaded';
+                } catch (e) {
+                    try {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            imageInput.value = reader.result || '';
+                            updatePreview();
+                            statusEl.textContent = 'Using data URL';
+                        };
+                        reader.onerror = () => { statusEl.textContent = 'Upload failed'; };
+                        reader.readAsDataURL(file);
+                    } catch (_) {
+                        statusEl.textContent = 'Upload failed';
+                    }
+                }
+            });
+            const copyBtn = document.getElementById('copy-hero-url');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', async () => {
+                    try { await navigator.clipboard.writeText(imageInput.value || ''); } catch(_) {}
+                });
+            }
+        })();
+
+        let members = [];
+        const defaultMembers = [
+            { id: '#M-1001', name: 'Omar Khaled', plan: 'VIP Yearly', status: 'Active' },
+            { id: '#M-1002', name: 'Laila M.', plan: 'Monthly', status: 'Pending' }
+        ];
+        let membersCounter = 0;
+        function initMembersCounter() {
+            const stored = parseInt(localStorage.getItem('fitness_members_counter') || '0', 10);
+            if (stored && !Number.isNaN(stored)) {
+                membersCounter = stored;
+                return;
+            }
+            const nums = members
+                .map(m => parseInt(String(m.id || '').replace(/[^0-9]/g, ''), 10))
+                .filter(n => !Number.isNaN(n));
+            membersCounter = nums.length ? Math.max.apply(null, nums) : 1000;
+            localStorage.setItem('fitness_members_counter', String(membersCounter));
+        }
+        function nextMemberId() {
+            membersCounter += 1;
+            localStorage.setItem('fitness_members_counter', String(membersCounter));
+            return '#M-' + membersCounter;
+        }
+
         // Initialize
         loadSettings();
         renderProductsEditor();
+        loadMembers();
 
         function renderProductsEditor() {
             const container = document.getElementById('products-list');
@@ -187,25 +342,189 @@
 
             products.forEach((prod, index) => {
                 const row = document.createElement('div');
-                row.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr 2fr; gap: 1rem; align-items: center; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 4px; border: 1px solid #333;';
+                row.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr 2fr; gap: 1rem; align-items: center; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 0px; border: 1px solid #333;';
                 
                 row.innerHTML = `
                     <div>
                         <label style="display: block; font-size: 0.8rem; color: #888; margin-bottom: 0.2rem;">Name</label>
-                        <input type="text" value="${prod.name}" disabled style="width: 100%; padding: 0.5rem; background: #111; border: 1px solid #333; color: #888; border-radius: 4px;">
+                        <input type="text" id="nm-${index}" disabled style="width: 100%; padding: 0.5rem; background: #111; border: 1px solid #333; color: #888; border-radius: 0px;">
                     </div>
                     <div>
                         <label style="display: block; font-size: 0.8rem; color: #888; margin-bottom: 0.2rem;">Price (AED)</label>
-                        <input type="number" id="price-${index}" value="${prod.price}" style="width: 100%; padding: 0.5rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px;">
+                        <input type="number" id="price-${index}" style="width: 100%; padding: 0.5rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 0px;">
                     </div>
                     <div>
-                        <label style="display: block; font-size: 0.8rem; color: #888; margin-bottom: 0.2rem;">Image URL</label>
-                        <input type="text" id="img-${index}" value="${prod.image}" style="width: 100%; padding: 0.5rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px;">
+                        <label style="display: block; font-size: 0.8rem; color: #888; margin-bottom: 0.2rem;">Image</label>
+                        <div style="display:flex; align-items:center; gap:.5rem;">
+                            <img id="thumb-${index}" alt="" style="width:72px; height:48px; object-fit:cover; border:1px solid #333;">
+                            <video id="vid-${index}" muted loop playsinline style="width:72px; height:48px; object-fit:cover; border:1px solid #333; display:none;"></video>
+                            <input type="text" id="img-${index}" style="display:none;">
+                            <input type="file" id="file-${index}" accept="image/*,video/mp4" style="display:none;">
+                            <button class="btn" id="upload-${index}" style="border-radius:0px;">Upload</button>
+                            <span id="st-${index}" style="color:#888; font-size:.85rem;"></span>
+                        </div>
                     </div>
                 `;
                 container.appendChild(row);
+
+                const nameEl = row.querySelector(`#nm-${index}`);
+                const fileEl = row.querySelector(`#file-${index}`);
+                const uploadBtn = row.querySelector(`#upload-${index}`);
+                const imgInput = row.querySelector(`#img-${index}`);
+                const thumb = row.querySelector(`#thumb-${index}`);
+                const vid = row.querySelector(`#vid-${index}`);
+                const st = row.querySelector(`#st-${index}`);
+                const priceEl = row.querySelector(`#price-${index}`);
+                if (nameEl) nameEl.value = typeof prod.name === 'string' ? prod.name : '';
+                if (priceEl) priceEl.value = typeof prod.price !== 'undefined' ? prod.price : '';
+                if (imgInput) imgInput.value = typeof prod.image === 'string' ? prod.image : '';
+                const val = typeof prod.image === 'string' ? prod.image : '';
+                const isVid = val.includes('.mp4') || val.startsWith('data:video');
+                if (isVid) {
+                    if (vid) { vid.src = val; vid.style.display = 'block'; }
+                    if (thumb) thumb.style.display = 'none';
+                } else {
+                    if (thumb) { thumb.src = val; thumb.style.display = 'block'; }
+                    if (vid) { vid.pause(); vid.style.display = 'none'; vid.removeAttribute('src'); }
+                }
+                uploadBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    fileEl.click();
+                });
+                fileEl.addEventListener('change', async () => {
+                    const f = fileEl.files?.[0];
+                    if (!f) return;
+                    if (f.size > 20 * 1024 * 1024) { st.textContent = 'File > 20MB'; return; }
+                    st.textContent = 'Uploading...';
+                    try {
+                        const url = await uploadToVercel(f);
+                        imgInput.value = url;
+                        if (f.type && f.type.startsWith('video')) {
+                            if (vid) { vid.src = url; vid.style.display = 'block'; }
+                            if (thumb) thumb.style.display = 'none';
+                        } else {
+                            if (thumb) { thumb.src = url; thumb.style.display = 'block'; }
+                            if (vid) { vid.pause(); vid.style.display = 'none'; vid.removeAttribute('src'); }
+                        }
+                        st.textContent = 'Uploaded';
+                    } catch(e) {
+                        try {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                                const val = reader.result || '';
+                                imgInput.value = val;
+                                const isV = typeof f.type === 'string' ? f.type.startsWith('video') : (val.startsWith('data:video'));
+                                if (isV) {
+                                    if (vid) { vid.src = val; vid.style.display = 'block'; }
+                                    if (thumb) thumb.style.display = 'none';
+                                } else {
+                                    if (thumb) { thumb.src = val; thumb.style.display = 'block'; }
+                                    if (vid) { vid.pause(); vid.style.display = 'none'; vid.removeAttribute('src'); }
+                                }
+                                st.textContent = 'Using data URL';
+                            };
+                            reader.onerror = () => { st.textContent = 'Upload failed'; };
+                            reader.readAsDataURL(f);
+                        } catch(_) {
+                            st.textContent = 'Upload failed';
+                        }
+                    }
+                });
             });
         }
+        function loadMembers(){
+            const stored = JSON.parse(localStorage.getItem('fitness_members') || 'null');
+            if (Array.isArray(stored) && stored.length) {
+                members = stored;
+            } else {
+                members = defaultMembers.slice();
+            }
+            initMembersCounter();
+            renderMembers();
+        }
+        function renderMembers(){
+            const tbody = document.getElementById('members-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            members.forEach((m, i) => {
+                const tr = document.createElement('tr');
+                const stBg = m.status === 'Active' ? '#fff' : (m.status === 'Pending' ? '#222' : '#444');
+                const stCol = m.status === 'Active' ? '#000' : '#888';
+                const canDelete = m.status !== 'Active';
+                tr.innerHTML = `
+                    <td>${m.id}</td>
+                    <td>${m.name}</td>
+                    <td>${m.plan}</td>
+                    <td><span class="status-badge" style="background:${stBg};color:${stCol};">${m.status}</span></td>
+                    <td>
+                        <button class="btn" data-act="edit" data-i="${i}" style="width:auto;background:#333;border-radius:0px;margin-right:.5rem;">Edit</button>
+                        <button class="btn" data-act="del" data-i="${i}" ${canDelete ? '' : 'disabled'} style="width:auto;background:#7f1d1d;border-radius:0px;opacity:${canDelete ? '1' : '0.4'};cursor:${canDelete ? 'pointer' : 'not-allowed'};">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        function persistMembers(){
+            localStorage.setItem('fitness_members', JSON.stringify(members));
+            renderMembers();
+        }
+        function openMemberModal(editIndex){
+            const overlay = document.createElement('div');
+            overlay.id = 'member-modal';
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:4000;';
+            const box = document.createElement('div');
+            box.style.cssText = 'background:#111;border:1px solid #333;padding:1.25rem;width:min(420px,92vw);';
+            const isEdit = typeof editIndex==='number';
+            const m = isEdit ? members[editIndex] : {id:'',name:'',plan:'',status:'Active'};
+            const labelId = isEdit && m.id ? m.id : 'Auto on save';
+            box.innerHTML = `
+                <h3 style="margin:0 0 1rem 0;">${isEdit?'Edit Member':'Add Member'}</h3>
+                <label style="display:block;color:#888;font-size:.9rem;margin-bottom:.25rem;">Member ID</label>
+                <div style="width:100%;padding:.6rem;background:#000;border:1px solid #333;color:#888;border-radius:0px;margin-bottom:.6rem;">${labelId}</div>
+                <label style="display:block;color:#888;font-size:.9rem;margin-bottom:.25rem;">Name</label>
+                <input id="mm-name" type="text" value="${m.name || ''}" style="width:100%;padding:.6rem;background:#000;border:1px solid #333;color:#fff;border-radius:0px;margin-bottom:.6rem;">
+                <label style="display:block;color:#888;font-size:.9rem;margin-bottom:.25rem;">Plan</label>
+                <input id="mm-plan" type="text" value="${m.plan || ''}" style="width:100%;padding:.6rem;background:#000;border:1px solid #333;color:#fff;border-radius:0px;margin-bottom:.6rem;">
+                <label style="display:block;color:#888;font-size:.9rem;margin-bottom:.25rem;">Status</label>
+                <select id="mm-status" style="width:100%;padding:.6rem;background:#000;border:1px solid #333;color:#fff;border-radius:0px;margin-bottom:1rem;">
+                    <option ${m.status==='Active'?'selected':''}>Active</option>
+                    <option ${m.status==='Pending'?'selected':''}>Pending</option>
+                    <option ${m.status==='Suspended'?'selected':''}>Suspended</option>
+                </select>
+                <div style="display:flex;gap:.5rem;justify-content:flex-end;">
+                    <button id="mm-cancel" class="btn" style="width:auto;background:#333;border-radius:0px;">Cancel</button>
+                    <button id="mm-save" class="btn" style="width:auto;background:#5D3FD3;border-radius:0px;">Save</button>
+                </div>
+            `;
+            overlay.appendChild(box);
+            document.body.appendChild(overlay);
+            box.querySelector('#mm-cancel').onclick = () => overlay.remove();
+            box.querySelector('#mm-save').onclick = () => {
+                const idVal = isEdit && m.id ? m.id : nextMemberId();
+                const data = {
+                    id: idVal,
+                    name: box.querySelector('#mm-name').value.trim(),
+                    plan: box.querySelector('#mm-plan').value.trim(),
+                    status: box.querySelector('#mm-status').value
+                };
+                if (!data.id || !data.name || !data.plan) return;
+                if (isEdit) members[editIndex] = data; else members.push(data);
+                persistMembers();
+                overlay.remove();
+            };
+        }
+        document.addEventListener('click', (e) => {
+            const t = e.target;
+            if (t && t.id === 'add-member-btn') { openMemberModal(); }
+            if (t && t.dataset && t.dataset.act === 'edit') { openMemberModal(parseInt(t.dataset.i,10)); }
+            if (t && t.dataset && t.dataset.act === 'del') {
+                const idx = parseInt(t.dataset.i,10);
+                const m = members[idx];
+                if (!m || m.status === 'Active') return;
+                members.splice(idx,1);
+                persistMembers();
+            }
+        });
 
         function saveProductChanges() {
             if (typeof products === 'undefined') return;

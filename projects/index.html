@@ -231,17 +231,6 @@
             </svg>
         </a>
     </div>
-    
-    <div class="admin-tools" id="vercel-tools">
-        <div class="row">
-            <input type="file" id="vercel-file" accept="image/*">
-            <button id="vercel-upload">Upload to Vercel</button>
-        </div>
-        <div id="vercel-status" class="status"></div>
-        <div id="vercel-result" class="status"></div>
-    </div>
-
-
     <div class="grid">
         <a href="Fitness_Center/index.html" class="card">
             <h2>Fitness Center</h2>
@@ -266,43 +255,6 @@
             <div class="arrow">Visit Portal &rarr;</div>
         </a>
     </div>
-    <script>
-        (function(){
-            const tools = document.getElementById('vercel-tools');
-            if (tools) tools.style.display = 'block';
-            const btn = document.getElementById('vercel-upload');
-            if (!btn) return;
-            btn.addEventListener('click', async () => {
-                const status = document.getElementById('vercel-status');
-                const result = document.getElementById('vercel-result');
-                status.textContent = '';
-                result.textContent = '';
-                const file = document.getElementById('vercel-file').files[0];
-                if (!file) { status.textContent = 'اختر صورة.'; return; }
-                if (file.size > 20 * 1024 * 1024) { status.textContent = 'الملف أكبر من 20MB.'; return; }
-                status.textContent = 'جاري الرفع...';
-                try {
-                    const resp = await fetch('/api/blob-upload', {
-                        method: 'POST',
-                        headers: {
-                            'x-filename': file.name,
-                            'content-type': file.type || 'application/octet-stream'
-                        },
-                        body: file
-                    });
-                    if (!resp.ok) throw new Error('upload failed');
-                    const data = await resp.json();
-                    if (data.url) {
-                        status.textContent = 'تم الرفع بنجاح.';
-                        result.innerHTML = '<a href="'+data.url+'" target="_blank" style="color:#8A2BE2">'+data.url+'</a>';
-                    } else {
-                        throw new Error('no url');
-                    }
-                } catch (e) {
-                    status.textContent = 'فشل الرفع. تأكد من النشر على Vercel وتفعيل Blob.';
-                }
-            });
-        })();
-    </script>
+    
 
 </body>

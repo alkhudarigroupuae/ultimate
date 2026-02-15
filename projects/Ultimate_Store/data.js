@@ -1,9 +1,7 @@
-const PLACEHOLDER = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400"><rect width="100%" height="100%" fill="%23000000"/><text x="50%" y="50%" fill="%23ffffff" font-size="24" font-family="Segoe UI, Arial" text-anchor="middle" dominant-baseline="middle">ULTIMATE</text></svg>';
-
 const defaultHero = {
   title: "EQUIP YOUR GREATNESS",
   subtitle: "Premium Gear for the Ultimate Athlete",
-  image: PLACEHOLDER
+  image: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1470&auto=format&fit=crop"
 };
 
 const products = [
@@ -11,35 +9,35 @@ const products = [
     id: 1,
     name: "Ultimate Hoodie - Black",
     price: 120.00,
-    image: PLACEHOLDER,
+    image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1374&auto=format&fit=crop",
     category: "Apparel"
   },
   {
     id: 2,
     name: "Ultimate Hoodie - Purple",
     price: 120.00,
-    image: PLACEHOLDER,
+    image: "https://images.unsplash.com/photo-1578768079052-aa76e52ff62e?q=80&w=1374&auto=format&fit=crop",
     category: "Apparel"
   },
   {
     id: 3,
     name: "Performance Cap",
     price: 45.00,
-    image: PLACEHOLDER,
+    image: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=1374&auto=format&fit=crop",
     category: "Accessories"
   },
   {
     id: 4,
     name: "Stainless Steel Water Bottle",
     price: 60.00,
-    image: PLACEHOLDER,
+    image: "https://images.unsplash.com/photo-1526403225898-eda7c1e3b28b?q=80&w=1374&auto=format&fit=crop",
     category: "Accessories"
   },
   {
     id: 5,
     name: "Gym Bag - Large",
     price: 180.00,
-    image: PLACEHOLDER,
+    image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=1374&auto=format&fit=crop",
     category: "Bags"
   }
 ];

@@ -2,7 +2,13 @@
   "name": "sidra-mono",
   "private": true,
   "type": "module",
+  "scripts": {
+    "upload:dev": "node dev-upload-server.js"
+  },
   "dependencies": {
     "@vercel/blob": "^0.21.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
   }
 }

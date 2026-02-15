@@ -7,6 +7,42 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <script>
+        (function adminGate(){
+            try {
+                const KEY = 'isAdmin';
+                if (localStorage.getItem(KEY) === 'true') return;
+                const overlay = document.createElement('div');
+                overlay.id = 'admin-gate';
+                overlay.style.cssText = 'position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:9999;color:#fff;';
+                overlay.innerHTML = '<div style="border:1px solid #333;padding:1.25rem;width:min(360px,90vw);background:#111;">'
+                    + '<h3 style=\"margin:0 0 .75rem 0;\">Admin Access</h3>'
+                    + '<input type=\"password\" id=\"admin-pass\" placeholder=\"Password\" style=\"width:100%;padding:.75rem;background:#000;border:1px solid #333;color:#fff;border-radius:0px;\">'
+                    + '<button id=\"admin-login\" style=\"margin-top:.75rem;width:100%;padding:.75rem;background:#5D3FD3;color:#fff;border:none;border-radius:0px;cursor:pointer;transition:opacity .15s;\">Enter</button>'
+                    + '<div id=\"admin-msg\" style=\"margin-top:.5rem;color:#aaa;font-size:.9rem;\"></div>'
+                    + '</div>';
+                document.addEventListener('DOMContentLoaded', () => document.body.appendChild(overlay));
+                function verify(pass){ return pass === '2468'; }
+                document.addEventListener('click', async (e) => {
+                    if (e.target && e.target.id === 'admin-login') {
+                        const pass = document.getElementById('admin-pass').value;
+                        if (verify(pass)) {
+                            localStorage.setItem(KEY, 'true');
+                            document.getElementById('admin-gate')?.remove();
+                        } else {
+                            const msg = document.getElementById('admin-msg'); if (msg) msg.textContent = 'Wrong password';
+                        }
+                    }
+                });
+                document.addEventListener('mouseover', (e) => {
+                    if (e.target && e.target.id === 'admin-login') e.target.style.opacity = '0.9';
+                });
+                document.addEventListener('mouseout', (e) => {
+                    if (e.target && e.target.id === 'admin-login') e.target.style.opacity = '1';
+                });
+            } catch(_) {}
+        })();
+    </script>
     <header>
         <h1>Restocafé Dashboard</h1>
         <nav>
@@ -53,6 +89,11 @@
                     <div style="margin-bottom: 1.5rem;">
                         <label style="display: block; margin-bottom: 0.5rem; color: var(--secondary-text);">Banner Image URL</label>
                         <input type="text" id="hero-image-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px;" placeholder="Enter image URL...">
+                        <div style="margin-top:.5rem; display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
+                            <input type="file" id="vercel-file" accept="image/*" style="color:#ccc;">
+                            <button class="btn" id="vercel-upload" style="width:auto;">Upload to Vercel</button>
+                            <div id="vercel-status" style="color:#aaa; font-size:.9rem;"></div>
+                        </div>
                     </div>
                     <button onclick="saveHeroSettings()" style="background: var(--brand-color); color: #fff; border: none; padding: 0.8rem 2rem; border-radius: 4px; cursor: pointer; font-weight: 600;">Save Changes</button>
                     <p id="save-message" style="margin-top: 1rem; color: #0f0; display: none;">Settings saved successfully!</p>
@@ -67,6 +108,15 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <h2 style="margin-top:2rem;">Menu Management</h2>
+        <div class="card" style="padding:1.5rem; margin-bottom:2rem;">
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem;">
+                <button class="btn" id="add-group" style="width:auto;">+ Add Group</button>
+                <button class="btn" id="add-product" style="width:auto;">+ Add Product</button>
+            </div>
+            <div id="menu-list" style="display:grid; gap:1rem;"></div>
         </div>
 
         <h2>Recent Orders</h2>
@@ -162,6 +212,277 @@
         titleInput.addEventListener('input', updatePreview);
         subtitleInput.addEventListener('input', updatePreview);
         imageInput.addEventListener('input', updatePreview);
+
+        async function uploadToVercel(file) {
+            const base = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:3001' : '';
+            const resp = await fetch(base + '/api/blob-upload', {
+                method: 'POST',
+                headers: {
+                    'x-filename': file.name,
+                    'content-type': file.type || 'application/octet-stream'
+                },
+                body: file
+            });
+            if (!resp.ok) throw new Error('Upload failed');
+            const data = await resp.json();
+            return data.url;
+        }
+
+        (function bindVercelUpload(){
+            const btn = document.getElementById('vercel-upload');
+            if (!btn) return;
+            btn.addEventListener('click', async () => {
+                const statusEl = document.getElementById('vercel-status');
+                statusEl.textContent = '';
+                const file = document.getElementById('vercel-file')?.files?.[0];
+                if (!file) { statusEl.textContent = 'Choose an image'; return; }
+                if (file.size > 20 * 1024 * 1024) { statusEl.textContent = 'File exceeds 20MB'; return; }
+                statusEl.textContent = 'Uploading...';
+                try {
+                    const url = await uploadToVercel(file);
+                    imageInput.value = url;
+                    updatePreview();
+                    statusEl.textContent = 'Uploaded';
+                } catch (e) {
+                    statusEl.textContent = 'Upload failed (check deployment)';
+                }
+            });
+        })();
+
+        // Menu Management (Groups + Products)
+        const menuListEl = document.getElementById('menu-list');
+        let menuProducts = JSON.parse(localStorage.getItem('restocafe_products')) || (typeof products !== 'undefined' ? products : []);
+        let menuCategories = JSON.parse(localStorage.getItem('restocafe_categories')) || Array.from(new Set(menuProducts.map(p => p.category)));
+
+        function saveMenu() {
+            localStorage.setItem('restocafe_products', JSON.stringify(menuProducts));
+            localStorage.setItem('restocafe_categories', JSON.stringify(menuCategories));
+        }
+
+        function renderMenu() {
+            menuListEl.innerHTML = '';
+            menuCategories.forEach(cat => {
+                const section = document.createElement('div');
+                section.className = 'card';
+                section.style.padding = '1rem';
+                section.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:0.5rem;">
+                        <h3 style="margin:0">${cat}</h3>
+                        <div style="display:flex;gap:.5rem;">
+                            <button class="btn" data-add="${cat}" style="width:auto;background:#333;">+ Add to ${cat}</button>
+                            <button class="btn" data-delcat="${cat}" style="width:auto;background:#222;">Delete Group</button>
+                        </div>
+                    </div>
+                    <div class="item-list" style="display:grid; gap:.5rem;"></div>
+                `;
+                const itemsWrap = section.querySelector('.item-list');
+                menuProducts.filter(p => p.category === cat).forEach(p => {
+                    const row = document.createElement('div');
+                    row.style.display = 'grid';
+                    row.style.gridTemplateColumns = '80px 1fr auto';
+                    row.style.alignItems = 'center';
+                    row.style.gap = '0.75rem';
+                    row.style.border = '1px solid #333';
+                    row.style.padding = '0.5rem';
+                    row.innerHTML = `
+                        <img src="${p.image}" style="width:80px;height:80px;object-fit:cover;border-radius:4px;border:1px solid #222;" alt="${p.name}">
+                        <div>
+                            <div style="font-weight:600">${p.name}</div>
+                            <div style="color:#888;font-size:.9rem">${p.price.toFixed(2)} AED</div>
+                        </div>
+                        <div style="display:flex;gap:.5rem;">
+                            <button class="btn" data-edit="${p.id}" style="width:auto;background:#2196F3;">Edit</button>
+                            <button class="btn" data-del="${p.id}" style="width:auto;background:#f44336;">Delete</button>
+                        </div>
+                    `;
+                    itemsWrap.appendChild(row);
+                });
+
+                // Handlers
+                section.querySelector(`[data-add="${cat}"]`).addEventListener('click', () => openProductModal({ category: cat }));
+                section.querySelector(`[data-delcat="${cat}"]`).addEventListener('click', () => {
+                    if (menuProducts.some(p => p.category === cat)) return alert('Group is not empty');
+                    menuCategories = menuCategories.filter(c => c !== cat);
+                    saveMenu();
+                    renderMenu();
+                });
+                menuListEl.appendChild(section);
+            });
+
+            // Global edit/delete handlers
+            menuListEl.querySelectorAll('[data-edit]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = parseInt(btn.getAttribute('data-edit'), 10);
+                    const item = menuProducts.find(p => p.id === id);
+                    if (item) openProductModal(item);
+                });
+            });
+            menuListEl.querySelectorAll('[data-del]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = parseInt(btn.getAttribute('data-del'), 10);
+                    menuProducts = menuProducts.filter(p => p.id !== id);
+                    saveMenu();
+                    renderMenu();
+                });
+            });
+        }
+
+        // Product Modal (lightweight)
+        let modalEl = null;
+        function buildModal() {
+            if (modalEl) return modalEl;
+            modalEl = document.createElement('div');
+            modalEl.className = 'modal';
+            modalEl.style.position = 'fixed';
+            modalEl.style.inset = '0';
+            modalEl.style.background = 'rgba(0,0,0,0.8)';
+            modalEl.style.display = 'none';
+            modalEl.style.zIndex = '3000';
+            modalEl.innerHTML = `
+                <div class="card" style="padding:1.5rem; max-width:520px; width:90%; margin:auto; margin-top:10vh; border:1px solid #333;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                        <h3 style="margin:0" id="pm-title">Add Product</h3>
+                        <button id="pm-close" class="btn" style="width:auto;background:#222;">Close</button>
+                    </div>
+                    <div style="display:grid; gap:.75rem;">
+                        <input id="pm-name" type="text" placeholder="Name" style="padding:.6rem;background:#000;border:1px solid #333;color:#fff;border-radius:4px;">
+                        <input id="pm-price" type="number" step="0.01" placeholder="Price" style="padding:.6rem;background:#000;border:1px solid #333;color:#fff;border-radius:4px;">
+                        <select id="pm-cat" style="padding:.6rem;background:#000;border:1px solid #333;color:#fff;border-radius:4px;"></select>
+                        <div>
+                            <label style="display:block; margin-bottom:.25rem; color:#888;">Image</label>
+                            <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
+                                <img id="pm-thumb" alt="" style="width:80px;height:80px;object-fit:cover;border:1px solid #333;">
+                                <input id="pm-image" type="text" style="display:none;">
+                                <input type="file" id="pm-file" accept="image/*" style="color:#ccc;">
+                                <button class="btn" id="pm-upload" style="width:auto;">Upload</button>
+                                <div id="pm-status" style="color:#aaa; font-size:.9rem;"></div>
+                            </div>
+                        </div>
+                        <button id="pm-save" class="btn" style="width:auto;">Save</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modalEl);
+            modalEl.querySelector('#pm-close').addEventListener('click', () => modalEl.style.display = 'none');
+            modalEl.querySelector('#pm-upload').addEventListener('click', async () => {
+                const f = modalEl.querySelector('#pm-file').files[0];
+                const status = modalEl.querySelector('#pm-status');
+                if (!f) { status.textContent = 'Choose an image'; return; }
+                if (f.size > 20 * 1024 * 1024) { status.textContent = 'File exceeds 20MB'; return; }
+                status.textContent = 'Uploading...';
+                try {
+                    const url = await uploadToVercel(f);
+                    modalEl.querySelector('#pm-image').value = url;
+                    const th = modalEl.querySelector('#pm-thumb'); if (th) th.src = url;
+                    status.textContent = 'Uploaded';
+                } catch (e) {
+                    try {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            modalEl.querySelector('#pm-image').value = reader.result || '';
+                            const th = modalEl.querySelector('#pm-thumb'); if (th) th.src = reader.result || '';
+                            status.textContent = 'Using data URL';
+                        };
+                        reader.onerror = () => { status.textContent = 'Upload failed'; };
+                        reader.readAsDataURL(f);
+                    } catch(_) {
+                        status.textContent = 'Upload failed';
+                    }
+                }
+            });
+            return modalEl;
+        }
+
+        function openProductModal(itemOrOpts) {
+            const modal = buildModal();
+            const isEdit = itemOrOpts && itemOrOpts.id;
+            modal.querySelector('#pm-title').textContent = isEdit ? 'Edit Product' : 'Add Product';
+            const nameEl = modal.querySelector('#pm-name');
+            const priceEl = modal.querySelector('#pm-price');
+            const catEl = modal.querySelector('#pm-cat');
+            const imgEl = modal.querySelector('#pm-image');
+            const thEl = modal.querySelector('#pm-thumb');
+            // Populate categories
+            catEl.innerHTML = '';
+            menuCategories.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c; opt.textContent = c;
+                catEl.appendChild(opt);
+            });
+            // Add a separator option for creating a new group quickly
+            const newOpt = document.createElement('option');
+            newOpt.value = '__new__'; newOpt.textContent = '— New Group —';
+            catEl.appendChild(newOpt);
+
+            // Defaults
+            nameEl.value = isEdit ? itemOrOpts.name : '';
+            priceEl.value = isEdit ? itemOrOpts.price : '';
+            imgEl.value = isEdit ? itemOrOpts.image : '';
+            if (thEl) thEl.src = isEdit ? itemOrOpts.image : '';
+            if (isEdit) {
+                catEl.value = itemOrOpts.category;
+            } else if (itemOrOpts && itemOrOpts.category) {
+                catEl.value = itemOrOpts.category;
+            } else {
+                catEl.selectedIndex = 0;
+            }
+
+            catEl.onchange = () => {
+                if (catEl.value === '__new__') {
+                    const newName = prompt('New group name?');
+                    if (newName && !menuCategories.includes(newName)) {
+                        menuCategories.push(newName);
+                        saveMenu();
+                    }
+                    // Rebuild the select
+                    openProductModal({ 
+                        id: isEdit ? itemOrOpts.id : undefined,
+                        name: nameEl.value,
+                        price: parseFloat(priceEl.value || '0') || '',
+                        image: imgEl.value,
+                        category: newName || menuCategories[0] 
+                    });
+                }
+            };
+
+            modal.querySelector('#pm-save').onclick = () => {
+                const nm = nameEl.value.trim();
+                const pr = parseFloat(priceEl.value);
+                const ct = catEl.value === '__new__' ? menuCategories[menuCategories.length - 1] : catEl.value;
+                const im = imgEl.value.trim();
+                if (!nm || isNaN(pr) || !ct || !im) return alert('Fill all fields');
+                if (!menuCategories.includes(ct)) {
+                    menuCategories.push(ct);
+                }
+                if (isEdit) {
+                    const idx = menuProducts.findIndex(p => p.id === itemOrOpts.id);
+                    if (idx !== -1) {
+                        menuProducts[idx] = { ...menuProducts[idx], name: nm, price: pr, category: ct, image: im };
+                    }
+                } else {
+                    const nextId = (menuProducts.reduce((m, p) => Math.max(m, p.id || 0), 0) + 1) || 1;
+                    menuProducts.push({ id: nextId, name: nm, price: pr, category: ct, image: im });
+                }
+                saveMenu();
+                renderMenu();
+                modal.style.display = 'none';
+            };
+
+            modal.style.display = 'block';
+        }
+
+        document.getElementById('add-group').addEventListener('click', () => {
+            const val = prompt('Group name?');
+            if (!val) return;
+            if (!menuCategories.includes(val)) {
+                menuCategories.push(val);
+                saveMenu();
+                renderMenu();
+            }
+        });
+        document.getElementById('add-product').addEventListener('click', () => openProductModal({}));
+
+        renderMenu();
 
         // Initialize
         loadSettings();

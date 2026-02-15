@@ -8,8 +8,8 @@
         :root {
             --bg-color: #000000;
             --text-color: #ffffff;
-            --accent-color: #8A2BE2; /* Mauve/Purple */
-            --accent-glow: 0 0 10px rgba(138, 43, 226, 0.5);
+            --accent-color: #5D3FD3;
+            --accent-glow: 0 0 10px rgba(93, 63, 211, 0.5);
             --card-bg: #111111;
             --border-color: #333333;
         }
@@ -45,7 +45,7 @@
             background: var(--card-bg);
             padding: 2rem;
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 0px;
             text-align: center;
             width: 90%;
             max-width: 400px;
@@ -74,7 +74,7 @@
             background: #000;
             border: 1px solid var(--border-color);
             color: #fff;
-            border-radius: 4px;
+            border-radius: 0px;
         }
 
         .btn {
@@ -82,7 +82,7 @@
             color: #fff;
             border: none;
             padding: 0.8rem 1.5rem;
-            border-radius: 4px;
+            border-radius: 0px;
             cursor: pointer;
             font-weight: bold;
             transition: all 0.3s ease;
@@ -130,7 +130,7 @@
             color: #fff;
             padding: 0.8rem 1.5rem;
             cursor: pointer;
-            border-radius: 4px;
+            border-radius: 0px;
             transition: all 0.3s;
         }
 
@@ -165,7 +165,7 @@
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             padding: 1rem;
-            border-radius: 8px;
+            border-radius: 0px;
             display: grid;
             grid-template-columns: 80px 1fr auto;
             gap: 1rem;
@@ -176,7 +176,7 @@
             width: 80px;
             height: 80px;
             object-fit: cover;
-            border-radius: 4px;
+            border-radius: 0px;
         }
 
         .item-details h3 {
@@ -232,7 +232,7 @@
         .modal-content {
             background: var(--card-bg);
             padding: 2rem;
-            border-radius: 12px;
+            border-radius: 0px;
             width: 90%;
             max-width: 500px;
             border: 1px solid var(--accent-color);
@@ -322,11 +322,12 @@
                 <input type="number" id="edit-price">
             </div>
             <div class="input-group">
-                <label>Image URL</label>
-                <input type="text" id="edit-image">
-                <div style="margin-top:.5rem; display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
+                <label>Image</label>
+                <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
+                    <img id="edit-thumb" alt="" style="width:80px;height:80px;object-fit:cover;border:1px solid #333;">
+                    <input type="text" id="edit-image" style="display:none;">
                     <input type="file" id="vercel-file" accept="image/*" style="color:#ccc;">
-                    <button class="btn" id="vercel-upload" style="width:auto;">Upload to Vercel</button>
+                    <button class="btn" id="vercel-upload" style="width:auto;">Upload</button>
                     <div id="vercel-status" style="color:#aaa; font-size:.9rem;"></div>
                 </div>
             </div>
@@ -500,6 +501,7 @@
             document.getElementById('edit-name').value = item.name;
             document.getElementById('edit-price').value = item.price;
             document.getElementById('edit-image').value = item.image;
+            const th = document.getElementById('edit-thumb'); if (th) th.src = item.image || '';
             document.getElementById('edit-category').value = item.category;
             document.getElementById('edit-modal').classList.add('active');
         }
@@ -562,7 +564,8 @@
 
         // Vercel Blob integration
         async function uploadToVercel(file) {
-            const resp = await fetch('/api/blob-upload', {
+            const base = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:3001' : '';
+            const resp = await fetch(base + '/api/blob-upload', {
                 method: 'POST',
                 headers: {
                     'x-filename': file.name,
@@ -588,9 +591,21 @@
                 try {
                     const url = await uploadToVercel(file);
                     document.getElementById('edit-image').value = url;
+                    const th = document.getElementById('edit-thumb'); if (th) th.src = url;
                     statusEl.textContent = 'تم الرفع';
                 } catch (e) {
-                    statusEl.textContent = 'فشل الرفع (تحقق من النشر على Vercel)';
+                    try {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            document.getElementById('edit-image').value = reader.result || '';
+                            const th = document.getElementById('edit-thumb'); if (th) th.src = reader.result || '';
+                            statusEl.textContent = 'استخدام data URL';
+                        };
+                        reader.onerror = () => { statusEl.textContent = 'فشل الرفع'; };
+                        reader.readAsDataURL(file);
+                    } catch(_) {
+                        statusEl.textContent = 'فشل الرفع';
+                    }
                 }
             });
         }

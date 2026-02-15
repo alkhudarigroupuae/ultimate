@@ -12,10 +12,23 @@
             <a href="../index.html" class="admin-home admin-only" title="Main Hub" style="display:none">
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a 2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
             </a>
+            <a href="../index.html" title="Back to Main Hub" style="margin-left:8px; margin-right:8px; display:inline-flex;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 70" width="56" height="32">
+                    <g fill="#5D3FD3">
+                        <path d="M20 40c-8-3-12-9-13-16-1-4 0-7 3-11 2-3 5-5 8-6 2-1 5 0 5 3 1 3-1 5-3 6-4 2-4 7-1 10 2 2 5 3 8 1 3-2 5-1 6 1 1 3 0 5-3 7-4 2-8 2-10 1z"/>
+                        <path d="M100 40c8-3 12-9 13-16 1-4 0-7-3-11-2-3-5-5-8-6-2-1-5 0-5 3-1 3 1 5 3 6 4 2 4 7 1 10-2 2-5 3-8 1-3-2-5-1-6 1-1 3 0 5 3 7 4 2 8 2 10 1z"/>
+                        <path d="M60 54l-22-12V31l22-12 22 12v11L60 54z" fill="none" stroke="#5D3FD3" stroke-width="4" stroke-linejoin="round"/>
+                        <text x="60" y="42" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-weight="700" font-size="20" fill="#5D3FD3">U</text>
+                        <path d="M44 18c7-3 25-3 32 0 1 1 1 2 0 3-7 3-25 3-32 0-1-1-1-2 0-3z"/>
+                        <path d="M47 14c6-3 19-3 26 0 1 1 1 2 0 3-6 3-19 3-26 0-1-1-1-2 0-3z"/>
+                    </g>
+                </svg>
+            </a>
             <h1>Ultimate Store</h1>
         </div>
         <nav>
-            <a href="index.html" style="color: var(--text-color);">Shop</a>
+            <a href="../index.html" style="color: var(--secondary-text); font-size: 0.9rem; border:1px solid #333; padding:4px 8px; text-transform:uppercase; letter-spacing:.02em;">Home</a>
+            <a href="index.html" style="color: var(--text-color); margin-left:12px;">Shop</a>
             <a href="dashboard.html">Admin</a>
         </nav>
     </header>
@@ -26,6 +39,7 @@
             <div class="hero-content">
                 <h1 id="hero-title"></h1>
                 <p id="hero-subtitle"></p>
+                <button id="change-hero" style="display:none;margin-top:12px;background:#8A2BE2;color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;">Change Hero</button>
             </div>
         </div>
 
@@ -40,6 +54,17 @@
         </div>
         <input type="file" id="vercel-file" accept="image/*" style="display:none">
     </main>
+
+    <!-- Modal Structure -->
+    <div id="product-modal" class="modal-overlay" onclick="closeModal(event)" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center;">
+        <div class="modal-content" style="position:relative; background:#111; border:1px solid #333; border-radius:8px; padding:1rem; width:min(900px,90vw); max-height:90vh; overflow:auto;">
+            <button class="modal-close" onclick="closeModal(event)" style="position:absolute; top:8px; right:8px; background:#222; color:#fff; border:none; width:36px; height:36px; border-radius:4px; cursor:pointer;">&times;</button>
+            <img id="modal-img" src="" alt="" style="width:100%; max-height:420px; object-fit:cover; border:1px solid #222; border-radius:6px;">
+            <h2 id="modal-title" style="margin:1rem 0 0.5rem 0;"></h2>
+            <div id="modal-price" style="color: var(--brand-color); font-weight:600; margin-bottom:0.75rem;"></div>
+            <p id="modal-desc" style="color:#aaa; line-height:1.6; margin:0;">Premium Ultimate Store product. High performance materials and refined design.</p>
+        </div>
+    </div>
 
     <script src="data.js"></script>
     <script>
@@ -56,6 +81,9 @@
         heroTitle.textContent = savedHero.title;
         heroSubtitle.textContent = savedHero.subtitle;
         heroSection.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${savedHero.image}')`;
+        if (isAdmin) {
+            document.getElementById('change-hero').style.display = 'inline-flex';
+        }
 
         // Render Categories and Products
         const grid = document.getElementById('product-grid');
@@ -79,6 +107,7 @@
                 card.className = 'card';
                 card.style.animation = `fadeUp 0.5s ease-out forwards ${index * 0.1}s`;
                 card.style.opacity = '0'; // Initial state for animation
+                card.style.cursor = 'pointer';
                 card.innerHTML = `
                     <div class="card-img">
                         <img src="${product.image}" alt="${product.name}" style="width:100%; height:100%; object-fit:cover;" loading="lazy" decoding="async">
@@ -89,6 +118,8 @@
                         <div class="card-price">${product.price.toFixed(2)} AED</div>
                     </div>
                 `;
+                // Open modal on click anywhere (image, name, price)
+                card.addEventListener('click', () => openProductDetails(product));
                 grid.appendChild(card);
             });
         }
@@ -114,8 +145,25 @@
         // Initial Render
         renderProducts(listAll);
 
+        // Modal Functions
+        function openProductDetails(product) {
+            document.getElementById('modal-img').src = product.image;
+            document.getElementById('modal-title').textContent = product.name;
+            document.getElementById('modal-price').textContent = product.price.toFixed(2) + ' AED';
+            document.getElementById('modal-desc').textContent = `High-quality ${product.name} from Ultimate Store. Engineered for performance.`;
+            const overlay = document.getElementById('product-modal');
+            overlay.style.display = 'flex';
+        }
+
+        function closeModal(event) {
+            if (event.target.id === 'product-modal' || event.target.classList.contains('modal-close')) {
+                document.getElementById('product-modal').style.display = 'none';
+            }
+        }
+
         async function uploadToVercel(file) {
-            const resp = await fetch('/api/blob-upload', {
+            const base = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:3001' : '';
+            const resp = await fetch(base + '/api/blob-upload', {
                 method: 'POST',
                 headers: { 'x-filename': file.name, 'content-type': file.type || 'application/octet-stream' },
                 body: file
@@ -128,25 +176,41 @@
         if (isAdmin) {
             const fileInput = document.getElementById('vercel-file');
             let pendingId = null;
+            let pendingHero = false;
             grid.addEventListener('click', (e) => {
                 const btn = e.target.closest('.admin-edit');
                 if (!btn) return;
                 pendingId = parseInt(btn.dataset.id, 10);
                 fileInput.value = '';
                 fileInput.click();
+                e.stopPropagation();
+            });
+            document.getElementById('change-hero').addEventListener('click', () => {
+                pendingHero = true;
+                fileInput.value = '';
+                fileInput.click();
             });
             fileInput.addEventListener('change', async () => {
                 const file = fileInput.files[0];
-                if (!file || !pendingId) return;
+                if (!file) return;
                 try {
                     const url = await uploadToVercel(file);
-                    const idx = listAll.findIndex(p => p.id === pendingId);
-                    if (idx !== -1) {
-                        listAll[idx].image = url;
-                        localStorage.setItem('store_products', JSON.stringify(listAll));
-                        renderProducts(listAll);
+                    if (pendingHero) {
+                        const newHero = { ...savedHero, image: url };
+                        localStorage.setItem('store_hero', JSON.stringify(newHero));
+                        heroSection.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${url}')`;
+                    } else if (pendingId) {
+                        const idx = listAll.findIndex(p => p.id === pendingId);
+                        if (idx !== -1) {
+                            listAll[idx].image = url;
+                            localStorage.setItem('store_products', JSON.stringify(listAll));
+                            renderProducts(listAll);
+                        }
                     }
-                } catch (e) {}
+                } catch (e) {} finally {
+                    pendingHero = false;
+                    pendingId = null;
+                }
             });
         }
     </script>

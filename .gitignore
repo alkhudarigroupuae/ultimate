@@ -9,3 +9,10 @@ coverage/
 .DS_Store
 Thumbs.db
 *.log
+
+# Local dev artifacts
+.vercel_deploy_*.json
+uploads/
+*.zip
+
+

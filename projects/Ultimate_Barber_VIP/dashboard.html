@@ -7,6 +7,42 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <script>
+        (function adminGate(){
+            try {
+                const KEY = 'isAdmin';
+                if (localStorage.getItem(KEY) === 'true') return;
+                const overlay = document.createElement('div');
+                overlay.id = 'admin-gate';
+                overlay.style.cssText = 'position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:9999;color:#fff;';
+                overlay.innerHTML = '<div style="border:1px solid #333;padding:1.25rem;width:min(360px,90vw);background:#111;">'
+                    + '<h3 style=\"margin:0 0 .75rem 0;\">Admin Access</h3>'
+                    + '<input type=\"password\" id=\"admin-pass\" placeholder=\"Password\" style=\"width:100%;padding:.75rem;background:#000;border:1px solid #333;color:#fff;border-radius:0px;\">'
+                    + '<button id=\"admin-login\" style=\"margin-top:.75rem;width:100%;padding:.75rem;background:#5D3FD3;color:#fff;border:none;border-radius:0px;cursor:pointer;transition:opacity .15s;\">Enter</button>'
+                    + '<div id=\"admin-msg\" style=\"margin-top:.5rem;color:#aaa;font-size:.9rem;\"></div>'
+                    + '</div>';
+                document.addEventListener('DOMContentLoaded', () => document.body.appendChild(overlay));
+                function verify(pass){ return pass === '2468'; }
+                document.addEventListener('click', async (e) => {
+                    if (e.target && e.target.id === 'admin-login') {
+                        const pass = document.getElementById('admin-pass').value;
+                        if (verify(pass)) {
+                            localStorage.setItem(KEY, 'true');
+                            document.getElementById('admin-gate')?.remove();
+                        } else {
+                            const msg = document.getElementById('admin-msg'); if (msg) msg.textContent = 'Wrong password';
+                        }
+                    }
+                });
+                document.addEventListener('mouseover', (e) => {
+                    if (e.target && e.target.id === 'admin-login') e.target.style.opacity = '0.9';
+                });
+                document.addEventListener('mouseout', (e) => {
+                    if (e.target && e.target.id === 'admin-login') e.target.style.opacity = '1';
+                });
+            } catch(_) {}
+        })();
+    </script>
     <header>
         <h1>Barber Admin</h1>
         <nav>
@@ -44,22 +80,30 @@
                 <div>
                     <div style="margin-bottom: 1.5rem;">
                         <label style="display: block; margin-bottom: 0.5rem; color: var(--secondary-text);">Banner Title</label>
-                        <input type="text" id="hero-title-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px;" placeholder="Enter title...">
+                        <input type="text" id="hero-title-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 0px;" placeholder="Enter title...">
                     </div>
                     <div style="margin-bottom: 1.5rem;">
                         <label style="display: block; margin-bottom: 0.5rem; color: var(--secondary-text);">Banner Subtitle</label>
-                        <input type="text" id="hero-subtitle-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px;" placeholder="Enter subtitle...">
+                        <input type="text" id="hero-subtitle-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 0px;" placeholder="Enter subtitle...">
                     </div>
                     <div style="margin-bottom: 1.5rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; color: var(--secondary-text);">Banner Image URL</label>
-                        <input type="text" id="hero-image-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px;" placeholder="Enter image URL...">
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--secondary-text);">Banner Image</label>
+                        <input type="text" id="hero-image-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 0px; display:none;" placeholder="Image URL">
+                        <div style="display:flex;align-items:center;gap:.75rem;">
+                            <div style="width:96px;height:60px;border:1px solid #333;background:#000;display:flex;align-items:center;justify-content:center;">
+                                <img id="hero-thumb" alt="" style="max-width:100%;max-height:100%;object-fit:contain;">
+                            </div>
+                            <input type="file" id="hero-file" accept="image/*" style="display:none;">
+                            <button id="hero-upload-btn" style="background: var(--brand-color); color: #fff; border: none; padding: 0.6rem 1.4rem; border-radius: 0px; cursor: pointer; font-weight: 600;">Upload</button>
+                            <span id="hero-upload-status" style="color:#aaa;font-size:.85rem;"></span>
+                        </div>
                     </div>
-                    <button onclick="saveHeroSettings()" style="background: var(--brand-color); color: #fff; border: none; padding: 0.8rem 2rem; border-radius: 4px; cursor: pointer; font-weight: 600;">Save Changes</button>
+                    <button onclick="saveHeroSettings()" style="background: var(--brand-color); color: #fff; border: none; padding: 0.8rem 2rem; border-radius: 0px; cursor: pointer; font-weight: 600;">Save Changes</button>
                     <p id="save-message" style="margin-top: 1rem; color: #0f0; display: none;">Settings saved successfully!</p>
                 </div>
                 <div>
                     <label style="display: block; margin-bottom: 0.5rem; color: var(--secondary-text);">Preview</label>
-                    <div id="hero-preview" style="width: 100%; height: 250px; background-color: #000; background-size: cover; background-position: center; border-radius: 8px; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border: 1px solid #333;">
+                    <div id="hero-preview" style="width: 100%; height: 250px; background-color: #000; background-size: cover; background-position: center; border-radius: 0px; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border: 1px solid #333;">
                         <div style="background: rgba(0,0,0,0.5); padding: 1rem; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                             <h3 id="preview-title" style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #fff;">Title</h3>
                             <p id="preview-subtitle" style="color: #ccc;">Subtitle</p>
@@ -121,6 +165,10 @@
         const previewTitle = document.getElementById('preview-title');
         const previewSubtitle = document.getElementById('preview-subtitle');
         const heroPreview = document.getElementById('hero-preview');
+        const heroThumb = document.getElementById('hero-thumb');
+        const heroFile = document.getElementById('hero-file');
+        const heroUploadBtn = document.getElementById('hero-upload-btn');
+        const heroUploadStatus = document.getElementById('hero-upload-status');
 
         function loadSettings() {
             const savedHero = JSON.parse(localStorage.getItem('barber_hero')) || (typeof defaultHero !== 'undefined' ? defaultHero : {
@@ -140,6 +188,7 @@
             previewTitle.textContent = titleInput.value;
             previewSubtitle.textContent = subtitleInput.value;
             heroPreview.style.backgroundImage = `url('${imageInput.value}')`;
+            if (heroThumb) heroThumb.src = imageInput.value;
         }
 
         function saveHeroSettings() {
@@ -157,6 +206,44 @@
             }, 3000);
             
             updatePreview();
+        }
+
+        async function uploadToVercel(file) {
+            const base = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:3001' : '';
+            const resp = await fetch(base + '/api/blob-upload', {
+                method: 'POST',
+                headers: { 'x-filename': file.name, 'content-type': file.type || 'application/octet-stream' },
+                body: file
+            });
+            if (!resp.ok) throw new Error();
+            const data = await resp.json();
+            return data.url;
+        }
+
+        if (heroUploadBtn && heroFile) {
+            heroUploadBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                heroUploadStatus.textContent = '';
+                heroFile.value = '';
+                heroFile.click();
+            });
+            heroFile.addEventListener('change', async () => {
+                const file = heroFile.files[0];
+                if (!file) return;
+                if (file.size > 20 * 1024 * 1024) {
+                    heroUploadStatus.textContent = 'File > 20MB';
+                    return;
+                }
+                heroUploadStatus.textContent = 'Uploading...';
+                try {
+                    const url = await uploadToVercel(file);
+                    imageInput.value = url;
+                    updatePreview();
+                    heroUploadStatus.textContent = 'Uploaded (click Save)';
+                } catch (e) {
+                    heroUploadStatus.textContent = 'Upload failed';
+                }
+            });
         }
 
         // Add event listeners for live preview

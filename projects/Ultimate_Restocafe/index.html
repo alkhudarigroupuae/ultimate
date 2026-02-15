@@ -27,7 +27,8 @@
             <h1>Ultimate Restocafé</h1>
         </div>
         <nav>
-            <a href="dashboard.html">Dashboard</a>
+            <a href="../index.html" style="color: var(--secondary-text); font-size: 0.9rem; border:1px solid #333; padding:4px 8px; text-transform:uppercase; letter-spacing:.02em;">Home</a>
+            <a href="dashboard.html" style="margin-left:12px;">Dashboard</a>
         </nav>
     </header>
 
@@ -37,6 +38,7 @@
             <div class="hero-content">
                 <h1 id="hero-title"></h1>
                 <p id="hero-subtitle"></p>
+                <button id="change-hero" style="display:none;margin-top:12px;background:#8A2BE2;color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;">Change Hero</button>
             </div>
         </div>
 
@@ -75,6 +77,9 @@
         heroSection.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${savedHero.image}')`;
         heroTitle.textContent = savedHero.title;
         heroSubtitle.textContent = savedHero.subtitle;
+        if (isAdmin) {
+            document.getElementById('change-hero').style.display = 'inline-flex';
+        }
 
         // Render Categories
         let listAll = JSON.parse(localStorage.getItem('restocafe_products')) || products;
@@ -82,23 +87,27 @@
         const categoryMenu = document.getElementById('category-menu');
         
         // Clear existing buttons except 'All'
-        categoryMenu.innerHTML = '<button class="cat-btn active" onclick="filterProducts(\'all\')">All</button>';
+        categoryMenu.innerHTML = '<button class="cat-btn active">All</button>';
+        const allBtn = categoryMenu.querySelector('.cat-btn');
+        allBtn.addEventListener('click', (e) => filterProducts('all', e));
         
         categories.filter(c => c !== 'all').forEach(cat => {
             const btn = document.createElement('button');
             btn.className = 'cat-btn';
             btn.textContent = cat;
-            btn.onclick = () => filterProducts(cat);
+            btn.onclick = (e) => filterProducts(cat, e);
             categoryMenu.appendChild(btn);
         });
 
         // Filter Function
-        function filterProducts(category) {
-            const btns = document.querySelectorAll('.cat-btn');
-            btns.forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+        function filterProducts(category, event) {
+            if (event) {
+                const btns = document.querySelectorAll('.cat-btn');
+                btns.forEach(b => b.classList.remove('active'));
+                event.target.classList.add('active');
+            }
 
-        const filtered = category === 'all' 
+            const filtered = category === 'all' 
                 ? listAll 
                 : listAll.filter(p => p.category === category);
             
@@ -122,7 +131,36 @@
                         <div class="card-price">${product.price.toLocaleString()} AED</div>
                     </div>
                 `;
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('.admin-edit')) return;
+                    openProductDetails(product);
+                });
                 grid.appendChild(card);
+            });
+        }
+
+        function openProductDetails(product) {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:4000;';
+            const box = document.createElement('div');
+            box.style.cssText = 'background:#111;border:1px solid #333;padding:1.5rem;width:min(420px,92vw);';
+            box.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <h3 style="margin:0;font-size:1.2rem;">${product.name}</h3>
+                    <button id="prd-close" style="background:#000;border:1px solid #444;color:#fff;padding:4px 8px;border-radius:0;cursor:pointer;">✕</button>
+                </div>
+                <div style="width:100%;height:220px;background:#000;border:1px solid #333;margin-bottom:1rem;display:flex;align-items:center;justify-content:center;">
+                    <img src="${product.image}" alt="${product.name}" style="max-width:100%;max-height:100%;object-fit:contain;" onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
+                </div>
+                <div style="font-size:1.1rem;font-weight:600;margin-bottom:.5rem;">${product.price.toLocaleString()} AED</div>
+                <p style="color:#aaa;font-size:.9rem;margin:0;">Premium item from Ultimate Restocafé menu.</p>
+            `;
+            overlay.appendChild(box);
+            document.body.appendChild(overlay);
+            const close = () => overlay.remove();
+            box.querySelector('#prd-close').onclick = close;
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) close();
             });
         }
 
@@ -130,7 +168,8 @@
         renderGrid(listAll);
 
         async function uploadToVercel(file) {
-            const resp = await fetch('/api/blob-upload', {
+            const base = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:3001' : '';
+            const resp = await fetch(base + '/api/blob-upload', {
                 method: 'POST',
                 headers: { 'x-filename': file.name, 'content-type': file.type || 'application/octet-stream' },
                 body: file
@@ -143,6 +182,7 @@
         if (isAdmin) {
             const fileInput = document.getElementById('vercel-file');
             let pendingId = null;
+            let pendingHero = false;
             grid.addEventListener('click', async (e) => {
                 const btn = e.target.closest('.admin-edit');
                 if (!btn) return;
@@ -150,18 +190,32 @@
                 fileInput.value = '';
                 fileInput.click();
             });
+            document.getElementById('change-hero').addEventListener('click', () => {
+                pendingHero = true;
+                fileInput.value = '';
+                fileInput.click();
+            });
             fileInput.addEventListener('change', async () => {
                 const file = fileInput.files[0];
-                if (!file || !pendingId) return;
+                if (!file) return;
                 try {
                     const url = await uploadToVercel(file);
-                    const idx = listAll.findIndex(p => p.id === pendingId);
-                    if (idx !== -1) {
-                        listAll[idx].image = url;
-                        localStorage.setItem('restocafe_products', JSON.stringify(listAll));
-                        renderGrid(listAll);
+                    if (pendingHero) {
+                        const newHero = { ...savedHero, image: url };
+                        localStorage.setItem('restocafe_hero', JSON.stringify(newHero));
+                        heroSection.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${url}')`;
+                    } else if (pendingId) {
+                        const idx = listAll.findIndex(p => p.id === pendingId);
+                        if (idx !== -1) {
+                            listAll[idx].image = url;
+                            localStorage.setItem('restocafe_products', JSON.stringify(listAll));
+                            renderGrid(listAll);
+                        }
                     }
-                } catch (e) {}
+                } catch (e) {} finally {
+                    pendingHero = false;
+                    pendingId = null;
+                }
             });
         }
 
