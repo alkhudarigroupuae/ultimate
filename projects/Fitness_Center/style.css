@@ -269,7 +269,7 @@ main {
     flex-wrap: wrap;
 }
 
-.cat-btn {
+.category-menu .cat-btn {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-color);
@@ -278,9 +278,13 @@ main {
     cursor: pointer;
     font-size: 1rem;
     transition: all 0.3s;
+    flex: 0 0 140px;
+    max-width: 140px;
+    text-align: center;
 }
 
-.cat-btn:hover, .cat-btn.active {
+.category-menu .cat-btn:hover,
+.category-menu .cat-btn.active {
     background: var(--brand-color);
     border-color: var(--brand-color);
     box-shadow: 0 0 15px var(--glow-color);

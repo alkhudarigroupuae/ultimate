@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fitness Center</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
     <style>
         body { padding-bottom: 4rem; }
         .floating-3cx-btn {
@@ -82,9 +82,8 @@
             <h1>Fitness Center</h1>
         </div>
         <nav>
-            <a href="../index.html" style="color: var(--secondary-text); font-size: 0.9rem; border:1px solid #333; padding:4px 8px; text-transform:uppercase; letter-spacing:.02em;">Home</a>
-            <a href="index.html" style="color: var(--text-color); margin-left:12px;">Gym & Shop</a>
-            <a href="dashboard.html">Admin</a>
+            <a href="index.html" style="color: var(--text-color);">Gym & Shop</a>
+            <a href="dashboard.html" style="margin-left:12px;">Admin</a>
         </nav>
     </header>
 
@@ -148,7 +147,7 @@
         </div>
     </div>
 
-    <script src="data.js"></script>
+    <script src="data.js?v=2"></script>
     <script>
         const isAdmin = localStorage.getItem('isAdmin') === 'true';
         if (isAdmin) {
@@ -206,14 +205,12 @@
             items.forEach(product => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                // Make card clickable
                 card.onclick = () => openProductDetails(product);
                 card.style.cursor = 'pointer';
                 
                 card.innerHTML = `
                     <div class="card-img">
                         <img src="${product.image}" alt="${product.name}" style="width:100%; height:100%; object-fit:contain;" loading="lazy" decoding="async">
-                        ${isAdmin ? `<button class="admin-edit" data-id="${product.id}" style="position:absolute;top:8px;right:8px;background:#8A2BE2;color:#fff;border:none;padding:6px 8px;border-radius:4px;cursor:pointer;">Change</button>` : ``}
                     </div>
                     <div class="card-content">
                         <h3 class="card-title">${product.name}</h3>
@@ -242,47 +239,7 @@
             }
         }
 
-        async function uploadToVercel(file) {
-            const base = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:3001' : '';
-            const resp = await fetch(base + '/api/blob-upload', {
-                method: 'POST',
-                headers: { 'x-filename': file.name, 'content-type': file.type || 'application/octet-stream' },
-                body: file
-            });
-            if (!resp.ok) throw new Error();
-            const data = await resp.json();
-            return data.url;
-        }
-
-        if (isAdmin) {
-            const fileInput = document.getElementById('vercel-file');
-            let pendingId = null;
-            grid.addEventListener('click', (e) => {
-                const btn = e.target.closest('.admin-edit');
-                if (!btn) return;
-                pendingId = parseInt(btn.dataset.id, 10);
-                fileInput.value = '';
-                fileInput.click();
-                e.stopPropagation();
-            });
-            fileInput.addEventListener('change', async () => {
-                const file = fileInput.files[0];
-                if (!file) return;
-                try {
-                    const url = await uploadToVercel(file);
-                    if (pendingId) {
-                        const idx = listAll.findIndex(p => p.id === pendingId);
-                        if (idx !== -1) {
-                            listAll[idx].image = url;
-                            localStorage.setItem('fitness_products', JSON.stringify(listAll));
-                            renderGrid(listAll);
-                        }
-                    }
-                } catch (e) {} finally {
-                    pendingId = null;
-                }
-            });
-        }
+        // Inline image change for cards has been removed; editing is handled via admin dashboards.
     </script>
 </body>
 </html>
