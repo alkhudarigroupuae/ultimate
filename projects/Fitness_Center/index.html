@@ -159,6 +159,7 @@
         const heroSection = document.getElementById('hero-section');
         const heroTitle = document.getElementById('hero-title');
         const heroSubtitle = document.getElementById('hero-subtitle');
+        const grid = document.getElementById('product-grid');
 
         heroSection.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${savedHero.image}')`;
         heroTitle.textContent = savedHero.title;
@@ -200,8 +201,6 @@
             renderGrid(filtered);
         }
 
-        const grid = document.getElementById('product-grid');
-        
         function renderGrid(items) {
             grid.innerHTML = '';
             items.forEach(product => {
