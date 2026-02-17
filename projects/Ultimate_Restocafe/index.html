@@ -98,6 +98,7 @@
         </div>
 
         <!-- Category Menu -->
+        <button class="cat-toggle-btn" id="cat-toggle-btn">Menu</button>
         <div class="category-menu" id="category-menu"></div>
 
         <div style="margin-bottom: 2rem;">
@@ -208,6 +209,7 @@
             'Hot Drinks'
         ];
         const categoryMenu = document.getElementById('category-menu');
+        const catToggleBtn = document.getElementById('cat-toggle-btn');
         
         // Clear existing buttons except 'All'
         categoryMenu.innerHTML = '<button class="cat-btn active">All</button>';
@@ -222,6 +224,12 @@
             categoryMenu.appendChild(btn);
         });
 
+        const catCloseBtn = document.createElement('button');
+        catCloseBtn.id = 'cat-close-btn';
+        catCloseBtn.className = 'cat-close-btn';
+        catCloseBtn.textContent = 'Close Menu';
+        categoryMenu.appendChild(catCloseBtn);
+
         // Filter Function
         function filterProducts(category, event) {
             if (event) {
@@ -235,6 +243,9 @@
                 : listAll.filter(p => p.category === category);
             
             renderGrid(filtered);
+            if (window.innerWidth <= 768) {
+                document.body.classList.remove('cat-menu-open');
+            }
         }
 
         const grid = document.getElementById('product-grid');
@@ -284,6 +295,17 @@
             box.querySelector('#prd-close').onclick = close;
             overlay.addEventListener('click', (e) => {
                 if (e.target === overlay) close();
+            });
+        }
+
+        if (catToggleBtn) {
+            catToggleBtn.addEventListener('click', () => {
+                document.body.classList.add('cat-menu-open');
+            });
+        }
+        if (catCloseBtn) {
+            catCloseBtn.addEventListener('click', () => {
+                document.body.classList.remove('cat-menu-open');
             });
         }
 
