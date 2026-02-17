@@ -243,9 +243,20 @@
                     const url = await uploadToVercel(file);
                     imageInput.value = url;
                     updatePreview();
-                    statusEl.textContent = 'Uploaded';
+                    statusEl.textContent = 'Uploaded (click Save)';
                 } catch (e) {
-                    statusEl.textContent = 'Upload failed (check deployment)';
+                    try {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            imageInput.value = reader.result || '';
+                            updatePreview();
+                            statusEl.textContent = 'Using local image (click Save)';
+                        };
+                        reader.onerror = () => { statusEl.textContent = 'Upload failed'; };
+                        reader.readAsDataURL(file);
+                    } catch (_) {
+                        statusEl.textContent = 'Upload failed';
+                    }
                 }
             });
         })();
