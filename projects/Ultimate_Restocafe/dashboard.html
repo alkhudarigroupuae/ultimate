@@ -172,16 +172,38 @@
         const previewSubtitle = document.getElementById('preview-subtitle');
         const heroPreview = document.getElementById('hero-preview');
 
-        function loadSettings() {
-            const savedHero = JSON.parse(localStorage.getItem('restocafe_hero')) || (typeof defaultHero !== 'undefined' ? defaultHero : {
+        async function loadSettings() {
+            let hero = (typeof defaultHero !== 'undefined' ? defaultHero : {
                 title: "TASTE THE EXCELLENCE",
                 subtitle: "Premium Coffee & Exquisite Dining",
                 image: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=1470&auto=format&fit=crop"
             });
 
-            titleInput.value = savedHero.title;
-            subtitleInput.value = savedHero.subtitle;
-            imageInput.value = savedHero.image;
+            try {
+                const resp = await fetch('/api/hero-settings?project=restocafe', { cache: 'no-store' });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data && typeof data === 'object') {
+                        hero = { ...hero, ...data };
+                    }
+                }
+            } catch (_) {}
+
+            try {
+                const localRaw = localStorage.getItem('restocafe_hero');
+                if (localRaw) {
+                    const localHero = JSON.parse(localRaw);
+                    if (localHero && typeof localHero === 'object') {
+                        hero = { ...hero, ...localHero };
+                    }
+                }
+            } catch (_) {}
+
+            localStorage.setItem('restocafe_hero', JSON.stringify(hero));
+
+            titleInput.value = hero.title;
+            subtitleInput.value = hero.subtitle;
+            imageInput.value = hero.image;
 
             updatePreview();
         }
@@ -192,7 +214,7 @@
             heroPreview.style.backgroundImage = `url('${imageInput.value}')`;
         }
 
-        function saveHeroSettings() {
+        async function saveHeroSettings() {
             const newHero = {
                 title: titleInput.value,
                 subtitle: subtitleInput.value,
@@ -202,10 +224,26 @@
             
             const msg = document.getElementById('save-message');
             msg.style.display = 'block';
+            msg.style.color = '#0f0';
+            msg.textContent = 'Settings saved successfully!';
+            try {
+                const resp = await fetch('/api/hero-settings?project=restocafe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newHero)
+                });
+                if (!resp.ok) {
+                    msg.style.color = '#f44336';
+                    msg.textContent = 'Saved locally only (server error)';
+                }
+            } catch (_) {
+                msg.style.color = '#f44336';
+                msg.textContent = 'Saved locally only (network error)';
+            }
             setTimeout(() => {
                 msg.style.display = 'none';
             }, 3000);
-            
+
             updatePreview();
         }
 

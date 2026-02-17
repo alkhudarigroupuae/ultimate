@@ -143,18 +143,43 @@
         if (isAdmin) {
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'flex');
         }
-        // Load Hero Banner
-        const savedHero = JSON.parse(localStorage.getItem('restocafe_hero')) || defaultHero;
         const heroSection = document.getElementById('hero-section');
         const heroTitle = document.getElementById('hero-title');
         const heroSubtitle = document.getElementById('hero-subtitle');
 
-        heroSection.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${savedHero.image}')`;
-        heroTitle.textContent = savedHero.title;
-        heroSubtitle.textContent = savedHero.subtitle;
-        if (isAdmin) {
-            document.getElementById('change-hero').style.display = 'inline-flex';
+        async function loadHero() {
+            let hero = defaultHero;
+            try {
+                const resp = await fetch('/api/hero-settings?project=restocafe', { cache: 'no-store' });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data && typeof data === 'object') {
+                        hero = { ...hero, ...data };
+                    }
+                }
+            } catch (_) {}
+
+            try {
+                const localRaw = localStorage.getItem('restocafe_hero');
+                if (localRaw) {
+                    const localHero = JSON.parse(localRaw);
+                    if (localHero && typeof localHero === 'object') {
+                        hero = { ...hero, ...localHero };
+                    }
+                }
+            } catch (_) {}
+
+            localStorage.setItem('restocafe_hero', JSON.stringify(hero));
+
+            heroSection.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${hero.image}')`;
+            heroTitle.textContent = hero.title;
+            heroSubtitle.textContent = hero.subtitle;
+            if (isAdmin) {
+                document.getElementById('change-hero').style.display = 'inline-flex';
+            }
         }
+
+        loadHero();
 
         // Render Categories (merge defaults with any saved overrides in LocalStorage)
         let storedRestocafe;
