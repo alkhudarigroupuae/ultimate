@@ -148,8 +148,15 @@
         if (isAdmin) {
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'flex');
         }
-        // Load Hero Banner
-        const savedHero = JSON.parse(localStorage.getItem('barber_hero')) || defaultHero;
+        // Load Hero Banner (safe parse)
+        let savedHeroRaw = null;
+        try {
+            const rawHero = localStorage.getItem('barber_hero');
+            savedHeroRaw = rawHero ? JSON.parse(rawHero) : null;
+        } catch (e) {
+            savedHeroRaw = null;
+        }
+        const savedHero = (savedHeroRaw && typeof savedHeroRaw === 'object') ? savedHeroRaw : defaultHero;
         const heroSection = document.getElementById('hero-section');
         const heroTitle = document.getElementById('hero-title');
         const heroSubtitle = document.getElementById('hero-subtitle');

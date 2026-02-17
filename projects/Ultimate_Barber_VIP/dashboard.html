@@ -171,11 +171,20 @@
         const heroUploadStatus = document.getElementById('hero-upload-status');
 
         function loadSettings() {
-            const savedHero = JSON.parse(localStorage.getItem('barber_hero')) || (typeof defaultHero !== 'undefined' ? defaultHero : {
-                title: "ULTIMATE GROOMING",
-                subtitle: "VIP Services for the Modern Man",
-                image: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=1474&auto=format&fit=crop"
-            });
+            let savedHero = null;
+            try {
+                const raw = localStorage.getItem('barber_hero');
+                savedHero = raw ? JSON.parse(raw) : null;
+            } catch (e) {
+                savedHero = null;
+            }
+            if (!savedHero || typeof savedHero !== 'object') {
+                savedHero = (typeof defaultHero !== 'undefined' ? defaultHero : {
+                    title: "ULTIMATE GROOMING",
+                    subtitle: "VIP Services for the Modern Man",
+                    image: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=1474&auto=format&fit=crop"
+                });
+            }
 
             titleInput.value = savedHero.title;
             subtitleInput.value = savedHero.subtitle;
