@@ -181,6 +181,56 @@
 
         async function loadRestocafeProducts() {
             try {
+                const storedWooApi = localStorage.getItem('restocafe_woo_api_url');
+                if (storedWooApi) {
+                    const wooResp = await fetch(storedWooApi, { cache: 'no-store' });
+                    if (wooResp.ok) {
+                        const data = await wooResp.json();
+                        const rawItems = Array.isArray(data)
+                            ? data
+                            : Array.isArray(data?.products)
+                            ? data.products
+                            : Array.isArray(data?.store?.products)
+                            ? data.store.products
+                            : [];
+
+                        const mapped = rawItems.map((p) => {
+                            const image =
+                                Array.isArray(p.images) && p.images.length && p.images[0].src
+                                    ? p.images[0].src
+                                    : p.image?.src || p.image || '';
+                            const category =
+                                Array.isArray(p.categories) && p.categories.length && (p.categories[0].name || p.categories[0].slug)
+                                    ? (p.categories[0].name || p.categories[0].slug)
+                                    : p.category || '';
+
+                            const priceCandidate =
+                                typeof p.prices?.price === 'string' && p.prices.price.trim().length
+                                    ? parseFloat(p.prices.price)
+                                    : typeof p.price === 'string' && p.price.trim().length
+                                    ? parseFloat(p.price)
+                                    : typeof p.regular_price === 'string' && p.regular_price.trim().length
+                                    ? parseFloat(p.regular_price)
+                                    : 0;
+
+                            return {
+                                id: p.id,
+                                name: p.name || '',
+                                price: Number.isFinite(priceCandidate) ? priceCandidate : 0,
+                                image,
+                                category,
+                            };
+                        });
+
+                        if (mapped.length) {
+                            localStorage.setItem('restocafe_products', JSON.stringify(mapped));
+                            return mapped;
+                        }
+                    }
+                }
+            } catch (_) {}
+
+            try {
                 const resp = await fetch('/api/project-data', { cache: 'no-store' });
                 if (resp.ok) {
                     const json = await resp.json();
@@ -203,43 +253,36 @@
         }
 
         let listAll = [];
-        const CATEGORY_LABELS = [
-            'Iced Coffee',
-            'Cocktail',
-            'Emperor',
-            'Juices',
-            'Milkshake',
-            'Crepe',
-            'Fruit Salads',
-            'Energy Drinks',
-            'Soft Drinks',
-            'Pancakes',
-            'Waffles',
-            'Healthy Hot Drinks',
-            'Coffee',
-            'Hot Drinks'
-        ];
         const categoryMenu = document.getElementById('category-menu');
         const catToggleBtn = document.getElementById('cat-toggle-btn');
-        
-        // Clear existing buttons except 'All'
-        categoryMenu.innerHTML = '<button class="cat-btn active">All</button>';
-        const allBtn = categoryMenu.querySelector('.cat-btn');
-        allBtn.addEventListener('click', (e) => filterProducts('all', e));
-        
-        CATEGORY_LABELS.forEach(cat => {
-            const btn = document.createElement('button');
-            btn.className = 'cat-btn';
-            btn.textContent = cat;
-            btn.onclick = (e) => filterProducts(cat, e);
-            categoryMenu.appendChild(btn);
-        });
 
-        const catCloseBtn = document.createElement('button');
-        catCloseBtn.id = 'cat-close-btn';
-        catCloseBtn.className = 'cat-close-btn';
-        catCloseBtn.textContent = 'Close Menu';
-        categoryMenu.appendChild(catCloseBtn);
+        function buildCategories() {
+            if (!categoryMenu) return;
+
+            categoryMenu.innerHTML = '<button class="cat-btn active">All</button>';
+            const allBtn = categoryMenu.querySelector('.cat-btn');
+            allBtn.addEventListener('click', (e) => filterProducts('all', e));
+
+            const categories = [...new Set(listAll.map(p => p.category).filter(Boolean))];
+
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'cat-btn';
+                btn.textContent = cat;
+                btn.onclick = (e) => filterProducts(cat, e);
+                categoryMenu.appendChild(btn);
+            });
+
+            const catCloseBtn = document.createElement('button');
+            catCloseBtn.id = 'cat-close-btn';
+            catCloseBtn.className = 'cat-close-btn';
+            catCloseBtn.textContent = 'Close Menu';
+            categoryMenu.appendChild(catCloseBtn);
+
+            catCloseBtn.addEventListener('click', () => {
+                document.body.classList.remove('cat-menu-open');
+            });
+        }
 
         // Filter Function
         function filterProducts(category, event) {
@@ -314,15 +357,11 @@
                 document.body.classList.add('cat-menu-open');
             });
         }
-        if (catCloseBtn) {
-            catCloseBtn.addEventListener('click', () => {
-                document.body.classList.remove('cat-menu-open');
-            });
-        }
 
-        // Initial Render (load from shared DB then fallback)
+        // Initial Render (load from WooCommerce / shared DB then fallback)
         loadRestocafeProducts().then(items => {
             listAll = items || [];
+            buildCategories();
             renderGrid(listAll);
         });
 
