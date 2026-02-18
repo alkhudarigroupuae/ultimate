@@ -13,6 +13,9 @@ export default async function handler(req, res) {
     return;
   }
 
+  const urlMeta = new URL(req.url, 'http://localhost');
+  const project = urlMeta.searchParams.get('project') || 'store';
+
   const base = process.env.WOO_BASE_URL;
   const key = process.env.WOO_CONSUMER_KEY;
   const secret = process.env.WOO_CONSUMER_SECRET;
@@ -28,6 +31,16 @@ export default async function handler(req, res) {
     url.searchParams.set('status', 'publish');
     url.searchParams.set('consumer_key', key);
     url.searchParams.set('consumer_secret', secret);
+
+    let categoryId = null;
+    if (project === 'restocafe') {
+      categoryId = process.env.WOO_RESTO_CATEGORY_ID || null;
+    } else if (project === 'store') {
+      categoryId = process.env.WOO_STORE_CATEGORY_ID || null;
+    }
+    if (categoryId) {
+      url.searchParams.set('category', categoryId);
+    }
 
     const response = await fetch(url.toString());
     if (!response.ok) {
@@ -64,9 +77,12 @@ export default async function handler(req, res) {
         })
       : [];
 
-    res.status(200).json({ store: { products: mapped } });
+    if (project === 'restocafe') {
+      res.status(200).json({ restocafe: { products: mapped } });
+    } else {
+      res.status(200).json({ store: { products: mapped } });
+    }
   } catch (e) {
     res.status(500).json({ error: 'Unexpected error while contacting WooCommerce' });
   }
 }
-

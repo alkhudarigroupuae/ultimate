@@ -191,51 +191,12 @@
 
         async function loadStoreProducts() {
             try {
-                const storedWooApi = localStorage.getItem('store_woo_api_url');
-                if (storedWooApi) {
-                    const wooResp = await fetch(storedWooApi, { cache: 'no-store' });
-                    if (wooResp.ok) {
-                        const data = await wooResp.json();
-                        const rawItems = Array.isArray(data)
-                            ? data
-                            : Array.isArray(data?.products)
-                            ? data.products
-                            : Array.isArray(data?.store?.products)
-                            ? data.store.products
-                            : [];
-
-                        const mapped = rawItems.map((p) => {
-                            const image =
-                                Array.isArray(p.images) && p.images.length && p.images[0].src
-                                    ? p.images[0].src
-                                    : p.image?.src || p.image || '';
-                            const category =
-                                Array.isArray(p.categories) && p.categories.length && (p.categories[0].name || p.categories[0].slug)
-                                    ? (p.categories[0].name || p.categories[0].slug)
-                                    : p.category || '';
-
-                            const priceCandidate =
-                                typeof p.prices?.price === 'string' && p.prices.price.trim().length
-                                    ? parseFloat(p.prices.price)
-                                    : typeof p.price === 'string' && p.price.trim().length
-                                    ? parseFloat(p.price)
-                                    : typeof p.regular_price === 'string' && p.regular_price.trim().length
-                                    ? parseFloat(p.regular_price)
-                                    : 0;
-
-                            return {
-                                id: p.id,
-                                name: p.name || '',
-                                price: Number.isFinite(priceCandidate) ? priceCandidate : 0,
-                                image,
-                                category,
-                            };
-                        });
-
-                        if (mapped.length) {
-                            localStorage.setItem('store_products', JSON.stringify(mapped));
-                            return mapped;
-                        }
+                const resp = await fetch('/api/woocommerce-products?project=store', { cache: 'no-store' });
+                if (resp.ok) {
+                    const json = await resp.json();
+                    if (json && json.store && Array.isArray(json.store.products)) {
+                        localStorage.setItem('store_products', JSON.stringify(json.store.products));
+                        return json.store.products;
                     }
                 }
             } catch (_) {}

@@ -118,22 +118,11 @@
 
         <h2 style="margin-top:2rem;">WooCommerce Menu Source</h2>
         <div class="card" style="padding:1.5rem; margin-bottom:2rem;">
-            <p style="margin-bottom:1rem; color:var(--secondary-text);">
-                Restocafé menu items (names, prices, categories, images) are now managed directly in WooCommerce.
+            <p style="margin-bottom:0; color:var(--secondary-text);">
+                Restocafé menu items (names, prices, categories, images) are now loaded directly
+                from WooCommerce using a secured API configured on the server. No menu editing
+                or API links are needed from this dashboard.
             </p>
-            <div style="margin-bottom:1rem;">
-                <label style="display:block; margin-bottom:0.5rem; color:var(--secondary-text);">
-                    WooCommerce Products API URL
-                </label>
-                <input
-                    type="text"
-                    id="restocafe-woo-api-url"
-                    style="width:100%; padding:0.8rem; background:#000; border:1px solid #333; color:#fff;"
-                    placeholder="https://ultimate-sy.com/wp-json/wc/store/products?per_page=100"
-                >
-            </div>
-            <button class="btn" id="restocafe-woo-api-save" style="width:auto;">Save API URL</button>
-            <p id="restocafe-woo-api-message" style="margin-top:0.75rem; color:#0f0; display:none;">Saved!</p>
         </div>
 
         <h2>Recent Orders</h2>
@@ -187,8 +176,6 @@
         const previewTitle = document.getElementById('preview-title');
         const previewSubtitle = document.getElementById('preview-subtitle');
         const heroPreview = document.getElementById('hero-preview');
-        const restocafeWooInput = document.getElementById('restocafe-woo-api-url');
-        const restocafeWooMessage = document.getElementById('restocafe-woo-api-message');
 
         async function loadSettings() {
             let hero = (typeof defaultHero !== 'undefined' ? defaultHero : {
@@ -222,11 +209,6 @@
             titleInput.value = hero.title;
             subtitleInput.value = hero.subtitle;
             imageInput.value = hero.image;
-
-            const storedWooApi = localStorage.getItem('restocafe_woo_api_url');
-            if (storedWooApi && restocafeWooInput) {
-                restocafeWooInput.value = storedWooApi;
-            }
 
             updatePreview();
         }
@@ -274,26 +256,6 @@
         titleInput.addEventListener('input', updatePreview);
         subtitleInput.addEventListener('input', updatePreview);
         imageInput.addEventListener('input', updatePreview);
-
-        document.getElementById('restocafe-woo-api-save').addEventListener('click', () => {
-            const url = restocafeWooInput.value.trim();
-            if (!url) {
-                restocafeWooMessage.style.display = 'block';
-                restocafeWooMessage.style.color = '#f44336';
-                restocafeWooMessage.textContent = 'Please enter a valid URL';
-                setTimeout(() => {
-                    restocafeWooMessage.style.display = 'none';
-                }, 2500);
-                return;
-            }
-            localStorage.setItem('restocafe_woo_api_url', url);
-            restocafeWooMessage.style.display = 'block';
-            restocafeWooMessage.style.color = '#0f0';
-            restocafeWooMessage.textContent = 'Saved!';
-            setTimeout(() => {
-                restocafeWooMessage.style.display = 'none';
-            }, 2500);
-        });
 
         async function uploadToVercel(file) {
             const base = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:3001' : '';

@@ -113,22 +113,11 @@
 
         <h2 style="margin-top:2rem;">WooCommerce Integration</h2>
         <div class="card" style="padding:1.5rem; margin-bottom:2rem;">
-            <p style="margin-bottom:1rem; color:var(--secondary-text);">
-                Products images and prices are now managed directly from your WooCommerce store.
+            <p style="margin-bottom:0; color:var(--secondary-text);">
+                Store products (names, prices, categories, images) are now loaded directly from
+                your WooCommerce store via a secured API configured on the server. No product
+                editing or API links are needed from this dashboard.
             </p>
-            <div style="margin-bottom:1rem;">
-                <label style="display:block; margin-bottom:0.5rem; color:var(--secondary-text);">
-                    WooCommerce Products API URL
-                </label>
-                <input
-                    type="text"
-                    id="woo-api-url"
-                    style="width:100%; padding:0.8rem; background:#000; border:1px solid #333; color:#fff;"
-                    placeholder="https://ultimate-sy.com/wp-json/wc/store/products?per_page=100"
-                >
-            </div>
-            <button class="btn" id="woo-api-save" style="width:auto;">Save API URL</button>
-            <p id="woo-api-message" style="margin-top:0.75rem; color:#0f0; display:none;">Saved!</p>
         </div>
 
         <h2>Recent Orders</h2>
@@ -182,8 +171,6 @@
         const previewTitle = document.getElementById('preview-title');
         const previewSubtitle = document.getElementById('preview-subtitle');
         const heroPreview = document.getElementById('hero-preview');
-        const wooApiInput = document.getElementById('woo-api-url');
-        const wooApiMessage = document.getElementById('woo-api-message');
 
         async function loadSettings() {
             let hero = (typeof defaultHero !== 'undefined' ? defaultHero : {
@@ -219,11 +206,6 @@
             imageInput.value = hero.image;
 
             updatePreview();
-
-            const storedWooApi = localStorage.getItem('store_woo_api_url');
-            if (storedWooApi) {
-                wooApiInput.value = storedWooApi;
-            }
         }
 
         function updatePreview() {
@@ -264,26 +246,6 @@
             
             updatePreview();
         }
-
-        document.getElementById('woo-api-save').addEventListener('click', () => {
-            const url = wooApiInput.value.trim();
-            if (!url) {
-                wooApiMessage.style.display = 'block';
-                wooApiMessage.style.color = '#f44336';
-                wooApiMessage.textContent = 'Please enter a valid URL';
-                setTimeout(() => {
-                    wooApiMessage.style.display = 'none';
-                }, 2500);
-                return;
-            }
-            localStorage.setItem('store_woo_api_url', url);
-            wooApiMessage.style.display = 'block';
-            wooApiMessage.style.color = '#0f0';
-            wooApiMessage.textContent = 'Saved!';
-            setTimeout(() => {
-                wooApiMessage.style.display = 'none';
-            }, 2500);
-        });
 
         // Add event listeners for live preview
         titleInput.addEventListener('input', updatePreview);
