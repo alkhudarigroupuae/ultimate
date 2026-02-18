@@ -141,15 +141,6 @@
 
         async function loadHero() {
             let hero = defaultHero;
-            try {
-                const resp = await fetch('/api/hero-settings?project=barber', { cache: 'no-store' });
-                if (resp.ok) {
-                    const data = await resp.json();
-                    if (data && typeof data === 'object') {
-                        hero = { ...hero, ...data };
-                    }
-                }
-            } catch (_) {}
 
             try {
                 const rawHero = localStorage.getItem('barber_hero');
@@ -157,6 +148,16 @@
                     const localHero = JSON.parse(rawHero);
                     if (localHero && typeof localHero === 'object') {
                         hero = { ...hero, ...localHero };
+                    }
+                }
+            } catch (_) {}
+
+            try {
+                const resp = await fetch('/api/hero-settings?project=barber', { cache: 'no-store' });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data && typeof data === 'object') {
+                        hero = { ...hero, ...data };
                     }
                 }
             } catch (_) {}

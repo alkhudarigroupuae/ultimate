@@ -570,6 +570,33 @@
             }
         });
 
+        async function syncSharedFitnessProducts(newProducts) {
+            try {
+                let existing = null;
+                try {
+                    const resp = await fetch('/api/project-data', { cache: 'no-store' });
+                    if (resp.ok) {
+                        existing = await resp.json();
+                    }
+                } catch (_) {}
+
+                const safeArray = (val) => Array.isArray(val) ? val : [];
+
+                const payload = {
+                    restocafe: { products: safeArray(existing?.restocafe?.products) },
+                    fitness: { products: newProducts },
+                    store: { products: safeArray(existing?.store?.products) },
+                    barber: { services: safeArray(existing?.barber?.services) }
+                };
+
+                await fetch('/api/project-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (_) {}
+        }
+
         function saveProductChanges() {
             if (typeof products === 'undefined') return;
 
@@ -581,9 +608,10 @@
                 };
             });
 
-            // Use the saveProducts helper from data.js
             if (typeof saveProducts === 'function') {
                 saveProducts(newProducts);
+
+                syncSharedFitnessProducts(newProducts);
                 
                 const msg = document.getElementById('product-save-message');
                 msg.style.display = 'block';

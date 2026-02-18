@@ -157,15 +157,6 @@
 
         async function loadHero() {
             let hero = defaultHero;
-            try {
-                const resp = await fetch('/api/hero-settings?project=fitness', { cache: 'no-store' });
-                if (resp.ok) {
-                    const data = await resp.json();
-                    if (data && typeof data === 'object') {
-                        hero = { ...hero, ...data };
-                    }
-                }
-            } catch (_) {}
 
             try {
                 const localRaw = localStorage.getItem('fitness_hero');
@@ -173,6 +164,16 @@
                     const localHero = JSON.parse(localRaw);
                     if (localHero && typeof localHero === 'object') {
                         hero = { ...hero, ...localHero };
+                    }
+                }
+            } catch (_) {}
+
+            try {
+                const resp = await fetch('/api/hero-settings?project=fitness', { cache: 'no-store' });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data && typeof data === 'object') {
+                        hero = { ...hero, ...data };
                     }
                 }
             } catch (_) {}
