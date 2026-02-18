@@ -135,25 +135,43 @@
         if (isAdmin) {
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'flex');
         }
-        // Load Hero Banner (safe parse)
-        let savedHeroRaw = null;
-        try {
-            const rawHero = localStorage.getItem('barber_hero');
-            savedHeroRaw = rawHero ? JSON.parse(rawHero) : null;
-        } catch (e) {
-            savedHeroRaw = null;
-        }
-        const savedHero = (savedHeroRaw && typeof savedHeroRaw === 'object') ? savedHeroRaw : defaultHero;
         const heroSection = document.getElementById('hero-section');
         const heroTitle = document.getElementById('hero-title');
         const heroSubtitle = document.getElementById('hero-subtitle');
 
-        heroTitle.textContent = savedHero.title;
-        heroSubtitle.textContent = savedHero.subtitle;
-        heroSection.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${savedHero.image}')`;
-        if (isAdmin) {
-            document.getElementById('change-hero').style.display = 'inline-flex';
+        async function loadHero() {
+            let hero = defaultHero;
+            try {
+                const resp = await fetch('/api/hero-settings?project=barber', { cache: 'no-store' });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data && typeof data === 'object') {
+                        hero = { ...hero, ...data };
+                    }
+                }
+            } catch (_) {}
+
+            try {
+                const rawHero = localStorage.getItem('barber_hero');
+                if (rawHero) {
+                    const localHero = JSON.parse(rawHero);
+                    if (localHero && typeof localHero === 'object') {
+                        hero = { ...hero, ...localHero };
+                    }
+                }
+            } catch (_) {}
+
+            localStorage.setItem('barber_hero', JSON.stringify(hero));
+
+            heroTitle.textContent = hero.title;
+            heroSubtitle.textContent = hero.subtitle;
+            heroSection.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${hero.image}')`;
+            if (isAdmin) {
+                document.getElementById('change-hero').style.display = 'inline-flex';
+            }
         }
+
+        loadHero();
 
         // Render Categories and Services
         const grid = document.getElementById('service-grid');

@@ -2,6 +2,9 @@ import { put, list } from '@vercel/blob';
 
 const PROJECT_KEYS = {
   restocafe: 'restocafe',
+  fitness: 'fitness',
+  store: 'store',
+  barber: 'barber',
 };
 
 export default async function handler(req, res) {
@@ -66,4 +69,3 @@ export default async function handler(req, res) {
 
   res.status(405).json({ error: 'Method Not Allowed' });
 }
-

@@ -150,16 +150,41 @@
         if (isAdmin) {
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'flex');
         }
-        // Load Hero Banner
-        const savedHero = JSON.parse(localStorage.getItem('fitness_hero')) || defaultHero;
         const heroSection = document.getElementById('hero-section');
         const heroTitle = document.getElementById('hero-title');
         const heroSubtitle = document.getElementById('hero-subtitle');
         const grid = document.getElementById('product-grid');
 
-        heroSection.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${savedHero.image}')`;
-        heroTitle.textContent = savedHero.title;
-        heroSubtitle.textContent = savedHero.subtitle;
+        async function loadHero() {
+            let hero = defaultHero;
+            try {
+                const resp = await fetch('/api/hero-settings?project=fitness', { cache: 'no-store' });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data && typeof data === 'object') {
+                        hero = { ...hero, ...data };
+                    }
+                }
+            } catch (_) {}
+
+            try {
+                const localRaw = localStorage.getItem('fitness_hero');
+                if (localRaw) {
+                    const localHero = JSON.parse(localRaw);
+                    if (localHero && typeof localHero === 'object') {
+                        hero = { ...hero, ...localHero };
+                    }
+                }
+            } catch (_) {}
+
+            localStorage.setItem('fitness_hero', JSON.stringify(hero));
+
+            heroSection.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${hero.image}')`;
+            heroTitle.textContent = hero.title;
+            heroSubtitle.textContent = hero.subtitle;
+        }
+
+        loadHero();
 
         // Render Categories (use products from data.js which already handles LocalStorage)
         let listAll = products;

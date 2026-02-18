@@ -77,26 +77,26 @@
         <!-- Hero Banner Settings -->
         <h2 style="margin-bottom: 1rem;">Website Hero Banner Settings</h2>
         <div class="card" style="margin-bottom: 3rem; padding: 2rem;">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                <div>
+            <div class="hero-settings-grid">
+                <div class="hero-form">
                     <div style="margin-bottom: 1.5rem;">
                         <label style="display: block; margin-bottom: 0.5rem; color: var(--secondary-text);">Banner Title</label>
-                        <input type="text" id="hero-title-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px;" placeholder="Enter title...">
+                        <input type="text" id="hero-title-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff;" placeholder="Enter title...">
                     </div>
                     <div style="margin-bottom: 1.5rem;">
                         <label style="display: block; margin-bottom: 0.5rem; color: var(--secondary-text);">Banner Subtitle</label>
-                        <input type="text" id="hero-subtitle-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px;" placeholder="Enter subtitle...">
+                        <input type="text" id="hero-subtitle-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff;" placeholder="Enter subtitle...">
                     </div>
                     <div style="margin-bottom: 1.5rem;">
                         <label style="display: block; margin-bottom: 0.5rem; color: var(--secondary-text);">Banner Image URL</label>
-                        <input type="text" id="hero-image-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px;" placeholder="Enter image URL...">
+                        <input type="text" id="hero-image-input" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: #fff;" placeholder="Enter image URL...">
                     </div>
-                    <button onclick="saveHeroSettings()" style="background: var(--brand-color); color: #fff; border: none; padding: 0.8rem 2rem; border-radius: 4px; cursor: pointer; font-weight: 600;">Save Changes</button>
+                    <button onclick="saveHeroSettings()" style="background: var(--brand-color); color: #fff; border: none; padding: 0.8rem 2rem; cursor: pointer; font-weight: 600;">Save Changes</button>
                     <p id="save-message" style="margin-top: 1rem; color: #0f0; display: none;">Settings saved successfully!</p>
                 </div>
                 <div>
                     <label style="display: block; margin-bottom: 0.5rem; color: var(--secondary-text);">Preview</label>
-                    <div id="hero-preview" style="width: 100%; height: 250px; background-color: #000; background-size: cover; background-position: center; border-radius: 8px; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border: 1px solid #333;">
+                    <div id="hero-preview" style="width: 100%; height: 250px; background-color: #000; background-size: cover; background-position: center; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border: 1px solid #333;">
                         <div style="background: rgba(0,0,0,0.5); padding: 1rem; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                             <h3 id="preview-title" style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #fff;">Title</h3>
                             <p id="preview-subtitle" style="color: #ccc;">Subtitle</p>
@@ -167,16 +167,38 @@
         const heroPreview = document.getElementById('hero-preview');
         const productList = document.getElementById('product-list');
 
-        function loadSettings() {
-            const savedHero = JSON.parse(localStorage.getItem('store_hero')) || (typeof defaultHero !== 'undefined' ? defaultHero : {
+        async function loadSettings() {
+            let hero = (typeof defaultHero !== 'undefined' ? defaultHero : {
                 title: "EQUIP YOUR GREATNESS",
                 subtitle: "Premium Gear for the Ultimate Athlete",
                 image: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1470&auto=format&fit=crop"
             });
 
-            titleInput.value = savedHero.title;
-            subtitleInput.value = savedHero.subtitle;
-            imageInput.value = savedHero.image;
+            try {
+                const resp = await fetch('/api/hero-settings?project=store', { cache: 'no-store' });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data && typeof data === 'object') {
+                        hero = { ...hero, ...data };
+                    }
+                }
+            } catch (_) {}
+
+            try {
+                const localRaw = localStorage.getItem('store_hero');
+                if (localRaw) {
+                    const localHero = JSON.parse(localRaw);
+                    if (localHero && typeof localHero === 'object') {
+                        hero = { ...hero, ...localHero };
+                    }
+                }
+            } catch (_) {}
+
+            localStorage.setItem('store_hero', JSON.stringify(hero));
+
+            titleInput.value = hero.title;
+            subtitleInput.value = hero.subtitle;
+            imageInput.value = hero.image;
 
             updatePreview();
 
@@ -191,7 +213,7 @@
             heroPreview.style.backgroundImage = `url('${imageInput.value}')`;
         }
 
-        function saveHeroSettings() {
+        async function saveHeroSettings() {
             const newHero = {
                 title: titleInput.value,
                 subtitle: subtitleInput.value,
@@ -201,6 +223,22 @@
             
             const msg = document.getElementById('save-message');
             msg.style.display = 'block';
+            msg.style.color = '#0f0';
+            msg.textContent = 'Settings saved successfully!';
+            try {
+                const resp = await fetch('/api/hero-settings?project=store', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newHero)
+                });
+                if (!resp.ok) {
+                    msg.style.color = '#f44336';
+                    msg.textContent = 'Saved locally only (server error)';
+                }
+            } catch (_) {
+                msg.style.color = '#f44336';
+                msg.textContent = 'Saved locally only (network error)';
+            }
             setTimeout(() => {
                 msg.style.display = 'none';
             }, 3000);

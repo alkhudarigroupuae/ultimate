@@ -146,18 +146,43 @@
         if (isAdmin) {
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'flex');
         }
-        // Load Hero Banner
-        const savedHero = JSON.parse(localStorage.getItem('store_hero')) || defaultHero;
         const heroSection = document.getElementById('hero-section');
         const heroTitle = document.getElementById('hero-title');
         const heroSubtitle = document.getElementById('hero-subtitle');
 
-        heroTitle.textContent = savedHero.title;
-        heroSubtitle.textContent = savedHero.subtitle;
-        heroSection.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${savedHero.image}')`;
-        if (isAdmin) {
-            document.getElementById('change-hero').style.display = 'inline-flex';
+        async function loadHero() {
+            let hero = defaultHero;
+            try {
+                const resp = await fetch('/api/hero-settings?project=store', { cache: 'no-store' });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data && typeof data === 'object') {
+                        hero = { ...hero, ...data };
+                    }
+                }
+            } catch (_) {}
+
+            try {
+                const localRaw = localStorage.getItem('store_hero');
+                if (localRaw) {
+                    const localHero = JSON.parse(localRaw);
+                    if (localHero && typeof localHero === 'object') {
+                        hero = { ...hero, ...localHero };
+                    }
+                }
+            } catch (_) {}
+
+            localStorage.setItem('store_hero', JSON.stringify(hero));
+
+            heroTitle.textContent = hero.title;
+            heroSubtitle.textContent = hero.subtitle;
+            heroSection.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${hero.image}')`;
+            if (isAdmin) {
+                document.getElementById('change-hero').style.display = 'inline-flex';
+            }
         }
+
+        loadHero();
 
         // Render Categories and Products
         const grid = document.getElementById('product-grid');
@@ -270,9 +295,20 @@
                 try {
                     const url = await uploadToVercel(file);
                     if (pendingHero) {
-                        const newHero = { ...savedHero, image: url };
+                        const rawHero = localStorage.getItem('store_hero');
+                        let current = null;
+                        try { current = rawHero ? JSON.parse(rawHero) : null; } catch (_) { current = null; }
+                        const baseHero = (current && typeof current === 'object') ? current : defaultHero;
+                        const newHero = { ...baseHero, image: url };
                         localStorage.setItem('store_hero', JSON.stringify(newHero));
                         heroSection.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${url}')`;
+                        try {
+                            await fetch('/api/hero-settings?project=store', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(newHero)
+                            });
+                        } catch (_) {}
                     } else if (pendingId) {
                         const idx = listAll.findIndex(p => p.id === pendingId);
                         if (idx !== -1) {

@@ -171,25 +171,38 @@
         const heroUploadBtn = document.getElementById('hero-upload-btn');
         const heroUploadStatus = document.getElementById('hero-upload-status');
 
-        function loadSettings() {
-            let savedHero = null;
-            try {
-                const raw = localStorage.getItem('barber_hero');
-                savedHero = raw ? JSON.parse(raw) : null;
-            } catch (e) {
-                savedHero = null;
-            }
-            if (!savedHero || typeof savedHero !== 'object') {
-                savedHero = (typeof defaultHero !== 'undefined' ? defaultHero : {
-                    title: "ULTIMATE GROOMING",
-                    subtitle: "VIP Services for the Modern Man",
-                    image: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=1474&auto=format&fit=crop"
-                });
-            }
+        async function loadSettings() {
+            let hero = (typeof defaultHero !== 'undefined' ? defaultHero : {
+                title: "ULTIMATE GROOMING",
+                subtitle: "VIP Services for the Modern Man",
+                image: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=1474&auto=format&fit=crop"
+            });
 
-            titleInput.value = savedHero.title;
-            subtitleInput.value = savedHero.subtitle;
-            imageInput.value = savedHero.image;
+            try {
+                const resp = await fetch('/api/hero-settings?project=barber', { cache: 'no-store' });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data && typeof data === 'object') {
+                        hero = { ...hero, ...data };
+                    }
+                }
+            } catch (_) {}
+
+            try {
+                const localRaw = localStorage.getItem('barber_hero');
+                if (localRaw) {
+                    const localHero = JSON.parse(localRaw);
+                    if (localHero && typeof localHero === 'object') {
+                        hero = { ...hero, ...localHero };
+                    }
+                }
+            } catch (_) {}
+
+            localStorage.setItem('barber_hero', JSON.stringify(hero));
+
+            titleInput.value = hero.title;
+            subtitleInput.value = hero.subtitle;
+            imageInput.value = hero.image;
 
             updatePreview();
         }
@@ -201,7 +214,7 @@
             if (heroThumb) heroThumb.src = imageInput.value;
         }
 
-        function saveHeroSettings() {
+        async function saveHeroSettings() {
             const newHero = {
                 title: titleInput.value,
                 subtitle: subtitleInput.value,
@@ -211,6 +224,22 @@
             
             const msg = document.getElementById('save-message');
             msg.style.display = 'block';
+            msg.style.color = '#0f0';
+            msg.textContent = 'Settings saved successfully!';
+            try {
+                const resp = await fetch('/api/hero-settings?project=barber', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newHero)
+                });
+                if (!resp.ok) {
+                    msg.style.color = '#f44336';
+                    msg.textContent = 'Saved locally only (server error)';
+                }
+            } catch (_) {
+                msg.style.color = '#f44336';
+                msg.textContent = 'Saved locally only (network error)';
+            }
             setTimeout(() => {
                 msg.style.display = 'none';
             }, 3000);

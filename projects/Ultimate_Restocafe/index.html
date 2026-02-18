@@ -342,9 +342,20 @@
                 try {
                     const url = await uploadToVercel(file);
                     if (pendingHero) {
-                        const newHero = { ...savedHero, image: url };
+                        const rawHero = localStorage.getItem('restocafe_hero');
+                        let current = null;
+                        try { current = rawHero ? JSON.parse(rawHero) : null; } catch (_) { current = null; }
+                        const baseHero = (current && typeof current === 'object') ? current : defaultHero;
+                        const newHero = { ...baseHero, image: url };
                         localStorage.setItem('restocafe_hero', JSON.stringify(newHero));
                         heroSection.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${url}')`;
+                        try {
+                            await fetch('/api/hero-settings?project=restocafe', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(newHero)
+                            });
+                        } catch (_) {}
                     } else if (pendingId) {
                         const idx = listAll.findIndex(p => p.id === pendingId);
                         if (idx !== -1) {
