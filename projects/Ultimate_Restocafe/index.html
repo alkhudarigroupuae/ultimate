@@ -378,6 +378,7 @@
                         if (idx !== -1) {
                             listAll[idx].image = url;
                             localStorage.setItem('restocafe_products', JSON.stringify(listAll));
+                            await syncSharedDbFromLocal();
                             renderGrid(listAll);
                         }
                     }
@@ -386,6 +387,48 @@
                     pendingId = null;
                 }
             });
+        }
+
+        async function syncSharedDbFromLocal() {
+            try {
+                let existing = null;
+                try {
+                    const resp = await fetch('/api/project-data', { cache: 'no-store' });
+                    if (resp.ok) {
+                        existing = await resp.json();
+                    }
+                } catch (_) {}
+
+                const safeArray = (val) => Array.isArray(val) ? val : [];
+
+                const readLocal = (key) => {
+                    try {
+                        const raw = localStorage.getItem(key);
+                        const parsed = raw ? JSON.parse(raw) : null;
+                        return Array.isArray(parsed) ? parsed : null;
+                    } catch (_) {
+                        return null;
+                    }
+                };
+
+                const restocafeProducts = readLocal('restocafe_products') ?? safeArray(existing?.restocafe?.products);
+                const fitnessProducts   = readLocal('fitness_products')   ?? safeArray(existing?.fitness?.products);
+                const storeProducts     = readLocal('store_products')     ?? safeArray(existing?.store?.products);
+                const barberServices    = readLocal('barber_services')    ?? safeArray(existing?.barber?.services);
+
+                const payload = {
+                    restocafe: { products: restocafeProducts },
+                    fitness:   { products: fitnessProducts },
+                    store:     { products: storeProducts },
+                    barber:    { services: barberServices }
+                };
+
+                await fetch('/api/project-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (_) {}
         }
 
         // Order/cart removed
