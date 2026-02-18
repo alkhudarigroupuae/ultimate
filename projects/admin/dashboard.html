@@ -388,30 +388,27 @@
             barber: []
         };
 
-        function loadAllData() {
-            // Load from LocalStorage or fall back to data.js variables
-            // Note: Variables productsData, servicesData, etc. come from the included scripts
-            // We need to ensure we are reading the correct global variables set in data.js files
-            
-            // Restocafe (productsData from Ultimate_Restocafe/data.js)
-            currentData.restocafe = JSON.parse(localStorage.getItem('restocafe_products')) || (typeof products !== 'undefined' ? products : []);
+        async function loadAllData() {
+            await loadFromSharedDb();
+
+            currentData.restocafe = currentData.restocafe.length
+                ? currentData.restocafe
+                : (JSON.parse(localStorage.getItem('restocafe_products')) || defaults.restocafe);
             renderList('restocafe', currentData.restocafe);
 
-            // Fitness (defaultProducts/products from Fitness_Center/data.js)
-            // Note: Fitness data.js defines 'products' variable locally or globally? 
-            // We need to check variable names carefully. In previous edits, we used 'products' and 'defaultProducts'.
-            // To avoid conflict, let's assume they might conflict if all loaded. 
-            // Actually, loading multiple data.js files that define 'const products' will cause errors!
-            // WE NEED A DIFFERENT STRATEGY FOR LOADING DATA or rename variables in data.js files.
-            // For now, let's read from localStorage primarily.
-            
-            currentData.fitness = JSON.parse(localStorage.getItem('fitness_products')) || [];
+            currentData.fitness = currentData.fitness.length
+                ? currentData.fitness
+                : (JSON.parse(localStorage.getItem('fitness_products')) || defaults.fitness);
             renderList('fitness', currentData.fitness);
 
-            currentData.store = JSON.parse(localStorage.getItem('store_products')) || [];
+            currentData.store = currentData.store.length
+                ? currentData.store
+                : (JSON.parse(localStorage.getItem('store_products')) || defaults.store);
             renderList('store', currentData.store);
 
-            currentData.barber = JSON.parse(localStorage.getItem('barber_services')) || [];
+            currentData.barber = currentData.barber.length
+                ? currentData.barber
+                : (JSON.parse(localStorage.getItem('barber_services')) || defaults.barber);
             renderList('barber', currentData.barber);
         }
 
@@ -443,19 +440,19 @@
             ]
         };
 
-        // Override loadAllData to use defaults if LS is empty
-        function loadAllData() {
-            currentData.restocafe = JSON.parse(localStorage.getItem('restocafe_products')) || defaults.restocafe;
-            renderList('restocafe', currentData.restocafe);
-
-            currentData.fitness = JSON.parse(localStorage.getItem('fitness_products')) || defaults.fitness;
-            renderList('fitness', currentData.fitness);
-
-            currentData.store = JSON.parse(localStorage.getItem('store_products')) || defaults.store;
-            renderList('store', currentData.store);
-
-            currentData.barber = JSON.parse(localStorage.getItem('barber_services')) || defaults.barber;
-            renderList('barber', currentData.barber);
+        async function loadFromSharedDb() {
+            try {
+                const resp = await fetch('/api/project-data', { cache: 'no-store' });
+                if (resp.ok) {
+                    const json = await resp.json();
+                    if (json && typeof json === 'object') {
+                        if (Array.isArray(json.restocafe?.products)) currentData.restocafe = json.restocafe.products;
+                        if (Array.isArray(json.fitness?.products)) currentData.fitness = json.fitness.products;
+                        if (Array.isArray(json.store?.products)) currentData.store = json.store.products;
+                        if (Array.isArray(json.barber?.services)) currentData.barber = json.barber.services;
+                    }
+                }
+            } catch (_) {}
         }
 
 
@@ -542,7 +539,22 @@
             if (section === 'barber') key = 'barber_services';
 
             localStorage.setItem(key, JSON.stringify(currentData[section]));
-            
+
+            // Save to shared DB (single JSON for كل 4 محلات)
+            try {
+                const payload = {
+                    restocafe: { products: currentData.restocafe },
+                    fitness: { products: currentData.fitness },
+                    store: { products: currentData.store },
+                    barber: { services: currentData.barber }
+                };
+                await fetch('/api/project-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (_) {}
+
             renderList(section, currentData[section]);
             closeModal();
         }
@@ -558,6 +570,21 @@
                 if (section === 'barber') key = 'barber_services';
 
                 localStorage.setItem(key, JSON.stringify(currentData[section]));
+
+                try {
+                    const payload = {
+                        restocafe: { products: currentData.restocafe },
+                        fitness: { products: currentData.fitness },
+                        store: { products: currentData.store },
+                        barber: { services: currentData.barber }
+                    };
+                    await fetch('/api/project-data', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                } catch (_) {}
+
                 renderList(section, currentData[section]);
             }
         }
