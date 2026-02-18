@@ -108,6 +108,9 @@ body {
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 1px;
+  flex: 0 0 140px;
+  max-width: 140px;
+  text-align: center;
 }
 
 .cat-btn:hover, .cat-btn.active {
