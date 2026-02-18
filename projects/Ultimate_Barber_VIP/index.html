@@ -180,7 +180,7 @@
         
         async function loadBarberServices() {
             try {
-                const resp = await fetch('/api/project-data', { cache: 'no-store' });
+                const resp = await fetch('/api/woocommerce-products?project=barber', { cache: 'no-store' });
                 if (resp.ok) {
                     const json = await resp.json();
                     if (json && json.barber && Array.isArray(json.barber.services)) {

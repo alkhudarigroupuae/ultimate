@@ -39,6 +39,8 @@ export default async function handler(req, res) {
       categoryId = process.env.WOO_STORE_CATEGORY_ID || null;
     } else if (project === 'fitness') {
       categoryId = process.env.WOO_FITNESS_CATEGORY_ID || null;
+    } else if (project === 'barber') {
+      categoryId = process.env.WOO_BARBER_CATEGORY_ID || null;
     }
     if (categoryId) {
       url.searchParams.set('category', categoryId);
@@ -83,6 +85,8 @@ export default async function handler(req, res) {
       res.status(200).json({ restocafe: { products: mapped } });
     } else if (project === 'fitness') {
       res.status(200).json({ fitness: { products: mapped } });
+    } else if (project === 'barber') {
+      res.status(200).json({ barber: { services: mapped } });
     } else {
       res.status(200).json({ store: { products: mapped } });
     }
