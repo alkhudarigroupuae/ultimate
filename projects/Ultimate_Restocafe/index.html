@@ -178,16 +178,30 @@
 
         loadHero();
 
-        // Render Categories (merge defaults with any saved overrides in LocalStorage)
-        let storedRestocafe;
-        try {
-            const raw = localStorage.getItem('restocafe_products');
-            storedRestocafe = raw ? JSON.parse(raw) : null;
-        } catch (_) {
-            storedRestocafe = null;
+        async function loadRestocafeProducts() {
+            try {
+                const resp = await fetch('/api/project-data', { cache: 'no-store' });
+                if (resp.ok) {
+                    const json = await resp.json();
+                    if (json && json.restocafe && Array.isArray(json.restocafe.products)) {
+                        localStorage.setItem('restocafe_products', JSON.stringify(json.restocafe.products));
+                        return json.restocafe.products;
+                    }
+                }
+            } catch (_) {}
+
+            let storedRestocafe;
+            try {
+                const raw = localStorage.getItem('restocafe_products');
+                storedRestocafe = raw ? JSON.parse(raw) : null;
+            } catch (_) {
+                storedRestocafe = null;
+            }
+            const storedMap = Array.isArray(storedRestocafe) ? new Map(storedRestocafe.map(p => [p.id, p])) : new Map();
+            return products.map(p => storedMap.has(p.id) ? { ...p, ...storedMap.get(p.id) } : p);
         }
-        const storedMap = Array.isArray(storedRestocafe) ? new Map(storedRestocafe.map(p => [p.id, p])) : new Map();
-        let listAll = products.map(p => storedMap.has(p.id) ? { ...p, ...storedMap.get(p.id) } : p);
+
+        let listAll = [];
         const CATEGORY_LABELS = [
             'Iced Coffee',
             'Cocktail',
@@ -305,8 +319,11 @@
             });
         }
 
-        // Initial Render
-        renderGrid(listAll);
+        // Initial Render (load from shared DB then fallback)
+        loadRestocafeProducts().then(items => {
+            listAll = items || [];
+            renderGrid(listAll);
+        });
 
         async function uploadToVercel(file) {
             const base = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:3001' : '';

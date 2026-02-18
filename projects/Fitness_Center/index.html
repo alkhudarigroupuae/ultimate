@@ -186,26 +186,53 @@
 
         loadHero();
 
-        // Render Categories (use products from data.js which already handles LocalStorage)
-        let listAll = products;
-        const categories = ['all', ...new Set(listAll.map(p => p.category))];
-        const categoryMenu = document.getElementById('category-menu');
-        
-        // Clear existing buttons except 'All'
-        categoryMenu.innerHTML = '<button class="cat-btn active">All</button>';
-        const allBtn = categoryMenu.querySelector('.cat-btn');
-        allBtn.addEventListener('click', (e) => filterProducts('all', e));
-        
-        categories.filter(c => c !== 'all').forEach(cat => {
-            const btn = document.createElement('button');
-            btn.className = 'cat-btn';
-            btn.textContent = cat;
-            btn.onclick = (e) => filterProducts(cat, e);
-            categoryMenu.appendChild(btn);
-        });
+        async function loadFitnessProducts() {
+            try {
+                const resp = await fetch('/api/project-data', { cache: 'no-store' });
+                if (resp.ok) {
+                    const json = await resp.json();
+                    if (json && json.fitness && Array.isArray(json.fitness.products)) {
+                        localStorage.setItem('fitness_products', JSON.stringify(json.fitness.products));
+                        return json.fitness.products;
+                    }
+                }
+            } catch (_) {}
 
-        // Initial render: show all products
-        renderGrid(listAll);
+            try {
+                const raw = localStorage.getItem('fitness_products');
+                const stored = raw ? JSON.parse(raw) : null;
+                if (Array.isArray(stored) && stored.length) {
+                    return stored;
+                }
+            } catch (_) {}
+
+            return products;
+        }
+
+        let listAll = [];
+        const categoryMenu = document.getElementById('category-menu');
+
+        function buildCategories() {
+            const categories = ['all', ...new Set(listAll.map(p => p.category))];
+            
+            categoryMenu.innerHTML = '<button class="cat-btn active">All</button>';
+            const allBtn = categoryMenu.querySelector('.cat-btn');
+            allBtn.addEventListener('click', (e) => filterProducts('all', e));
+            
+            categories.filter(c => c !== 'all').forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'cat-btn';
+                btn.textContent = cat;
+                btn.onclick = (e) => filterProducts(cat, e);
+                categoryMenu.appendChild(btn);
+            });
+        }
+
+        loadFitnessProducts().then(items => {
+            listAll = items || [];
+            buildCategories();
+            renderGrid(listAll);
+        });
 
         // Filter Function
         function filterProducts(category, event) {

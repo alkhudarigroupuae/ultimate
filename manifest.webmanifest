@@ -1,0 +1,17 @@
+{
+  "name": "Ultimate Group",
+  "short_name": "Ultimate",
+  "start_url": "/projects/index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
+

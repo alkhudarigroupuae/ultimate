@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ultimate Group</title>
+    <meta name="theme-color" content="#000000">
+    <link rel="manifest" href="/manifest.webmanifest">
     <style>
         :root {
             --bg-color: #050011;
@@ -326,7 +328,7 @@
             <span class="footer-label">Instagram</span>
         </a>
     </div>
-
+    
     <div class="grid">
         <a href="Fitness_Center/index.html" class="card">
             <h2>Fitness Center</h2>
@@ -351,6 +353,11 @@
             <div class="arrow">Visit Portal &rarr;</div>
         </a>
     </div>
-    
-
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('/sw.js').catch(function () {});
+            });
+        }
+    </script>
 </body>

@@ -187,17 +187,43 @@
         // Render Categories and Products
         const grid = document.getElementById('product-grid');
         const categoryMenu = document.getElementById('category-menu');
-        
-        // Extract unique categories
-        let listAll = JSON.parse(localStorage.getItem('store_products')) || products;
-        const categories = [...new Set(listAll.map(p => p.category))];
-        categories.forEach(cat => {
-            const btn = document.createElement('button');
-            btn.className = 'cat-btn';
-            btn.textContent = cat;
-            btn.onclick = () => filterProducts(cat);
-            categoryMenu.appendChild(btn);
-        });
+
+        async function loadStoreProducts() {
+            try {
+                const resp = await fetch('/api/project-data', { cache: 'no-store' });
+                if (resp.ok) {
+                    const json = await resp.json();
+                    if (json && json.store && Array.isArray(json.store.products)) {
+                        localStorage.setItem('store_products', JSON.stringify(json.store.products));
+                        return json.store.products;
+                    }
+                }
+            } catch (_) {}
+
+            try {
+                const raw = localStorage.getItem('store_products');
+                const stored = raw ? JSON.parse(raw) : null;
+                if (Array.isArray(stored) && stored.length) {
+                    return stored;
+                }
+            } catch (_) {}
+
+            return products;
+        }
+
+        let listAll = [];
+
+        function buildCategories() {
+            const categories = [...new Set(listAll.map(p => p.category))];
+            categoryMenu.innerHTML = '';
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'cat-btn';
+                btn.textContent = cat;
+                btn.onclick = () => filterProducts(cat);
+                categoryMenu.appendChild(btn);
+            });
+        }
 
         function renderProducts(items) {
             grid.innerHTML = '';
@@ -241,8 +267,11 @@
             }
         }
 
-        // Initial Render
-        renderProducts(listAll);
+        loadStoreProducts().then(items => {
+            listAll = items || [];
+            buildCategories();
+            renderProducts(listAll);
+        });
 
         // Modal Functions
         function openProductDetails(product) {

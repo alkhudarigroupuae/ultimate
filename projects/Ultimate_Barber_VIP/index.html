@@ -177,16 +177,42 @@
         const grid = document.getElementById('service-grid');
         const categoryMenu = document.getElementById('category-menu');
         
-        // Extract unique categories
-        let listAll = JSON.parse(localStorage.getItem('barber_services')) || services;
-        const categories = [...new Set(listAll.map(s => s.category))];
-        categories.forEach(cat => {
-            const btn = document.createElement('button');
-            btn.className = 'cat-btn';
-            btn.textContent = cat;
-            btn.onclick = () => filterServices(cat);
-            categoryMenu.appendChild(btn);
-        });
+        async function loadBarberServices() {
+            try {
+                const resp = await fetch('/api/project-data', { cache: 'no-store' });
+                if (resp.ok) {
+                    const json = await resp.json();
+                    if (json && json.barber && Array.isArray(json.barber.services)) {
+                        localStorage.setItem('barber_services', JSON.stringify(json.barber.services));
+                        return json.barber.services;
+                    }
+                }
+            } catch (_) {}
+
+            try {
+                const raw = localStorage.getItem('barber_services');
+                const stored = raw ? JSON.parse(raw) : null;
+                if (Array.isArray(stored) && stored.length) {
+                    return stored;
+                }
+            } catch (_) {}
+
+            return services;
+        }
+
+        let listAll = [];
+
+        function buildCategories() {
+            const categories = [...new Set(listAll.map(s => s.category))];
+            categoryMenu.innerHTML = '';
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'cat-btn';
+                btn.textContent = cat;
+                btn.onclick = () => filterServices(cat);
+                categoryMenu.appendChild(btn);
+            });
+        }
 
         function renderServices(items) {
             grid.innerHTML = '';
@@ -227,8 +253,11 @@
             }
         }
 
-        // Initial Render
-        renderServices(listAll);
+        loadBarberServices().then(items => {
+            listAll = items || [];
+            buildCategories();
+            renderServices(listAll);
+        });
 
         async function uploadToVercel(file) {
             const base = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:3001' : '';
