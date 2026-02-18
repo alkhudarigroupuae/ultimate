@@ -248,7 +248,6 @@
                 card.innerHTML = `
                     <div class="card-img">
                         <img src="${product.image}" alt="${product.name}" style="width:100%; height:100%; object-fit:cover;" loading="lazy" decoding="async">
-                        ${isAdmin ? `<button class="admin-edit" data-id="${product.id}" style="position:absolute;top:8px;right:8px;background:#8A2BE2;color:#fff;border:none;padding:6px 8px;border-radius:4px;cursor:pointer;">Change</button>` : ``}
                     </div>
                     <div class="card-content">
                         <h3 class="card-title">${product.name}</h3>
@@ -315,16 +314,7 @@
 
         if (isAdmin) {
             const fileInput = document.getElementById('vercel-file');
-            let pendingId = null;
             let pendingHero = false;
-            grid.addEventListener('click', (e) => {
-                const btn = e.target.closest('.admin-edit');
-                if (!btn) return;
-                pendingId = parseInt(btn.dataset.id, 10);
-                fileInput.value = '';
-                fileInput.click();
-                e.stopPropagation();
-            });
             document.getElementById('change-hero').addEventListener('click', () => {
                 pendingHero = true;
                 fileInput.value = '';
@@ -350,18 +340,9 @@
                                 body: JSON.stringify(newHero)
                             });
                         } catch (_) {}
-                    } else if (pendingId) {
-                        const idx = listAll.findIndex(p => p.id === pendingId);
-                        if (idx !== -1) {
-                            listAll[idx].image = url;
-                            localStorage.setItem('store_products', JSON.stringify(listAll));
-                            await syncSharedDbFromLocal();
-                            renderProducts(listAll);
-                        }
                     }
                 } catch (e) {} finally {
                     pendingHero = false;
-                    pendingId = null;
                 }
             });
         }

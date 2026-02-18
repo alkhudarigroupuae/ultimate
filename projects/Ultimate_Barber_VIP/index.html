@@ -225,7 +225,6 @@
                 card.innerHTML = `
                     <div class="card-img">
                         <img src="${service.image}" alt="${service.name}" style="width:100%; height:100%; object-fit:cover;" loading="lazy" decoding="async">
-                        ${isAdmin ? `<button class="admin-edit" data-id="${service.id}" style="position:absolute;top:8px;right:8px;background:#8A2BE2;color:#fff;border:none;padding:6px 8px;border-radius:4px;cursor:pointer;">Change</button>` : ``}
                     </div>
                     <div class="card-content">
                         <h3 class="card-title">${service.name}</h3>
@@ -274,15 +273,7 @@
 
         if (isAdmin) {
             const fileInput = document.getElementById('vercel-file');
-            let pendingId = null;
             let pendingHero = false;
-            grid.addEventListener('click', (e) => {
-                const btn = e.target.closest('.admin-edit');
-                if (!btn) return;
-                pendingId = parseInt(btn.dataset.id, 10);
-                fileInput.value = '';
-                fileInput.click();
-            });
             document.getElementById('change-hero').addEventListener('click', () => {
                 pendingHero = true;
                 fileInput.value = '';
@@ -297,18 +288,9 @@
                         const newHero = { ...savedHero, image: url };
                         localStorage.setItem('barber_hero', JSON.stringify(newHero));
                         heroSection.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${url}')`;
-                    } else if (pendingId) {
-                        const idx = listAll.findIndex(s => s.id === pendingId);
-                        if (idx !== -1) {
-                            listAll[idx].image = url;
-                            localStorage.setItem('barber_services', JSON.stringify(listAll));
-                            await syncSharedDbFromLocal();
-                            renderServices(listAll);
-                        }
                     }
                 } catch (e) {} finally {
                     pendingHero = false;
-                    pendingId = null;
                 }
             });
         }

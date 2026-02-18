@@ -118,17 +118,6 @@
             </div>
         </div>
 
-        <!-- Product Management Settings -->
-        <h2 style="margin-bottom: 1rem;">Manage Products & Services</h2>
-        <div class="card" style="margin-bottom: 3rem; padding: 2rem;">
-            <p style="color: var(--secondary-text); margin-bottom: 1.5rem;">Update prices and images for your fitness packages and products.</p>
-            <div id="products-list" style="display: grid; gap: 1rem;">
-                <!-- Products will be loaded here -->
-            </div>
-            <button onclick="saveProductChanges()" style="background: var(--brand-color); color: #fff; border: none; padding: 0.8rem 2rem; border-radius: 0px; cursor: pointer; font-weight: 600; margin-top: 1.5rem;">Save Product Changes</button>
-            <p id="product-save-message" style="margin-top: 1rem; color: #0f0; display: none;">Products updated successfully!</p>
-        </div>
-
         <h2 id="members" style="margin-bottom: 1rem; display:flex; align-items:center; justify-content:space-between;">
             <span>Members</span>
             <button id="add-member-btn" class="btn" style="width:auto; border-radius:0px; background:#5D3FD3;">+ Add Member</button>
@@ -374,108 +363,7 @@
 
         // Initialize
         loadSettings();
-        renderProductsEditor();
         loadMembers();
-
-        function renderProductsEditor() {
-            const container = document.getElementById('products-list');
-            container.innerHTML = '';
-            
-            // products is available globally from data.js
-            if (typeof products === 'undefined') return;
-
-            products.forEach((prod, index) => {
-                const row = document.createElement('div');
-                row.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr 2fr; gap: 1rem; align-items: center; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 0px; border: 1px solid #333;';
-                
-                row.innerHTML = `
-                    <div>
-                        <label style="display: block; font-size: 0.8rem; color: #888; margin-bottom: 0.2rem;">Name</label>
-                        <input type="text" id="nm-${index}" disabled style="width: 100%; padding: 0.5rem; background: #111; border: 1px solid #333; color: #888; border-radius: 0px;">
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 0.8rem; color: #888; margin-bottom: 0.2rem;">Price (SYP)</label>
-                        <input type="number" id="price-${index}" style="width: 100%; padding: 0.5rem; background: #000; border: 1px solid #333; color: #fff; border-radius: 0px;">
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 0.8rem; color: #888; margin-bottom: 0.2rem;">Image</label>
-                        <div style="display:flex; align-items:center; gap:.5rem;">
-                            <img id="thumb-${index}" alt="" style="width:72px; height:48px; object-fit:cover; border:1px solid #333;">
-                            <video id="vid-${index}" muted loop playsinline style="width:72px; height:48px; object-fit:cover; border:1px solid #333; display:none;"></video>
-                            <input type="text" id="img-${index}" style="display:none;">
-                            <input type="file" id="file-${index}" accept="image/*,video/mp4" style="display:none;">
-                            <button class="btn" id="upload-${index}" style="border-radius:0px;">Upload</button>
-                            <span id="st-${index}" style="color:#888; font-size:.85rem;"></span>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(row);
-
-                const nameEl = row.querySelector(`#nm-${index}`);
-                const fileEl = row.querySelector(`#file-${index}`);
-                const uploadBtn = row.querySelector(`#upload-${index}`);
-                const imgInput = row.querySelector(`#img-${index}`);
-                const thumb = row.querySelector(`#thumb-${index}`);
-                const vid = row.querySelector(`#vid-${index}`);
-                const st = row.querySelector(`#st-${index}`);
-                const priceEl = row.querySelector(`#price-${index}`);
-                if (nameEl) nameEl.value = typeof prod.name === 'string' ? prod.name : '';
-                if (priceEl) priceEl.value = typeof prod.price !== 'undefined' ? prod.price : '';
-                if (imgInput) imgInput.value = typeof prod.image === 'string' ? prod.image : '';
-                const val = typeof prod.image === 'string' ? prod.image : '';
-                const isVid = val.includes('.mp4') || val.startsWith('data:video');
-                if (isVid) {
-                    if (vid) { vid.src = val; vid.style.display = 'block'; }
-                    if (thumb) thumb.style.display = 'none';
-                } else {
-                    if (thumb) { thumb.src = val; thumb.style.display = 'block'; }
-                    if (vid) { vid.pause(); vid.style.display = 'none'; vid.removeAttribute('src'); }
-                }
-                uploadBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    fileEl.click();
-                });
-                fileEl.addEventListener('change', async () => {
-                    const f = fileEl.files?.[0];
-                    if (!f) return;
-                    if (f.size > 20 * 1024 * 1024) { st.textContent = 'File > 20MB'; return; }
-                    st.textContent = 'Uploading...';
-                    try {
-                        const url = await uploadToVercel(f);
-                        imgInput.value = url;
-                        if (f.type && f.type.startsWith('video')) {
-                            if (vid) { vid.src = url; vid.style.display = 'block'; }
-                            if (thumb) thumb.style.display = 'none';
-                        } else {
-                            if (thumb) { thumb.src = url; thumb.style.display = 'block'; }
-                            if (vid) { vid.pause(); vid.style.display = 'none'; vid.removeAttribute('src'); }
-                        }
-                        st.textContent = 'Uploaded';
-                    } catch(e) {
-                        try {
-                            const reader = new FileReader();
-                            reader.onload = () => {
-                                const val = reader.result || '';
-                                imgInput.value = val;
-                                const isV = typeof f.type === 'string' ? f.type.startsWith('video') : (val.startsWith('data:video'));
-                                if (isV) {
-                                    if (vid) { vid.src = val; vid.style.display = 'block'; }
-                                    if (thumb) thumb.style.display = 'none';
-                                } else {
-                                    if (thumb) { thumb.src = val; thumb.style.display = 'block'; }
-                                    if (vid) { vid.pause(); vid.style.display = 'none'; vid.removeAttribute('src'); }
-                                }
-                                st.textContent = 'Using data URL';
-                            };
-                            reader.onerror = () => { st.textContent = 'Upload failed'; };
-                            reader.readAsDataURL(f);
-                        } catch(_) {
-                            st.textContent = 'Upload failed';
-                        }
-                    }
-                });
-            });
-        }
         function loadMembers(){
             const stored = JSON.parse(localStorage.getItem('fitness_members') || 'null');
             if (Array.isArray(stored) && stored.length) {
@@ -570,58 +458,6 @@
             }
         });
 
-        async function syncSharedFitnessProducts(newProducts) {
-            try {
-                let existing = null;
-                try {
-                    const resp = await fetch('/api/project-data', { cache: 'no-store' });
-                    if (resp.ok) {
-                        existing = await resp.json();
-                    }
-                } catch (_) {}
-
-                const safeArray = (val) => Array.isArray(val) ? val : [];
-
-                const payload = {
-                    restocafe: { products: safeArray(existing?.restocafe?.products) },
-                    fitness: { products: newProducts },
-                    store: { products: safeArray(existing?.store?.products) },
-                    barber: { services: safeArray(existing?.barber?.services) }
-                };
-
-                await fetch('/api/project-data', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-            } catch (_) {}
-        }
-
-        function saveProductChanges() {
-            if (typeof products === 'undefined') return;
-
-            const newProducts = products.map((prod, index) => {
-                return {
-                    ...prod,
-                    price: parseInt(document.getElementById(`price-${index}`).value),
-                    image: document.getElementById(`img-${index}`).value
-                };
-            });
-
-            if (typeof saveProducts === 'function') {
-                saveProducts(newProducts);
-
-                syncSharedFitnessProducts(newProducts);
-                
-                const msg = document.getElementById('product-save-message');
-                msg.style.display = 'block';
-                setTimeout(() => {
-                    msg.style.display = 'none';
-                }, 3000);
-            } else {
-                alert('Error: saveProducts function not found in data.js');
-            }
-        }
     </script>
 </body>
 </html>
