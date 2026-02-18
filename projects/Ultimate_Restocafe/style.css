@@ -136,12 +136,38 @@ main {
   color: var(--bg-color);
   border: none;
   padding: 0.5rem 1rem;
-  border-radius: 4px;
+  border-radius: 0;
   cursor: pointer;
   font-weight: 500;
   margin-top: 1rem;
   width: 100%;
   transition: opacity 0.2s;
+}
+
+.hero-settings-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.hero-form input[type="text"] {
+  border-radius: 0;
+  text-align: left;
+}
+
+.hero-form button {
+  border-radius: 0;
+}
+
+#hero-preview {
+  border-radius: 0;
+}
+
+@media (max-width: 900px) {
+  .hero-settings-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Hero Banner */
