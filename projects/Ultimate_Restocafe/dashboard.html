@@ -309,9 +309,37 @@
         let menuProducts = JSON.parse(localStorage.getItem('restocafe_products')) || (typeof products !== 'undefined' ? products : []);
         let menuCategories = JSON.parse(localStorage.getItem('restocafe_categories')) || Array.from(new Set(menuProducts.map(p => p.category)));
 
+        async function syncSharedRestocafeMenu() {
+            try {
+                let existing = null;
+                try {
+                    const resp = await fetch('/api/project-data', { cache: 'no-store' });
+                    if (resp.ok) {
+                        existing = await resp.json();
+                    }
+                } catch (_) {}
+
+                const safeArray = (val) => Array.isArray(val) ? val : [];
+
+                const payload = {
+                    restocafe: { products: menuProducts },
+                    fitness: { products: safeArray(existing?.fitness?.products) },
+                    store: { products: safeArray(existing?.store?.products) },
+                    barber: { services: safeArray(existing?.barber?.services) }
+                };
+
+                await fetch('/api/project-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (_) {}
+        }
+
         function saveMenu() {
             localStorage.setItem('restocafe_products', JSON.stringify(menuProducts));
             localStorage.setItem('restocafe_categories', JSON.stringify(menuCategories));
+            syncSharedRestocafeMenu();
         }
 
         function renderMenu() {
