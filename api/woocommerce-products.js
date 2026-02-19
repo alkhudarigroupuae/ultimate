@@ -60,10 +60,47 @@ export default async function handler(req, res) {
             Array.isArray(p.images) && p.images.length && p.images[0].src
               ? p.images[0].src
               : '';
-          const category =
-            Array.isArray(p.categories) && p.categories.length && p.categories[0].name
-              ? p.categories[0].name
-              : '';
+
+          let category = '';
+          const cats = Array.isArray(p.categories) ? p.categories : [];
+
+          // Prefer subcategories under the configured parent category for each project
+          let parentId = null;
+          if (project === 'restocafe' && process.env.WOO_RESTO_CATEGORY_ID) {
+            parentId = parseInt(process.env.WOO_RESTO_CATEGORY_ID, 10) || null;
+          } else if (project === 'store' && process.env.WOO_STORE_CATEGORY_ID) {
+            parentId = parseInt(process.env.WOO_STORE_CATEGORY_ID, 10) || null;
+          } else if (project === 'fitness' && process.env.WOO_FITNESS_CATEGORY_ID) {
+            parentId = parseInt(process.env.WOO_FITNESS_CATEGORY_ID, 10) || null;
+          } else if (project === 'barber' && process.env.WOO_BARBER_CATEGORY_ID) {
+            parentId = parseInt(process.env.WOO_BARBER_CATEGORY_ID, 10) || null;
+          }
+
+          if (parentId && cats.length) {
+            const sub = cats.find(
+              (c) => typeof c.parent === 'number' && c.parent === parentId
+            );
+            if (sub && sub.name) {
+              category = sub.name;
+            } else if (!cats.some((c) => c.id === parentId)) {
+              const child = cats.find(
+                (c) => typeof c.parent === 'number' && c.parent !== 0
+              );
+              const chosen = child || cats[0];
+              if (chosen && chosen.name) {
+                category = chosen.name;
+              }
+            }
+          } else if (cats.length) {
+            const child = cats.find(
+              (c) => typeof c.parent === 'number' && c.parent !== 0
+            );
+            const chosen = child || cats[0];
+            if (chosen && chosen.name) {
+              category = chosen.name;
+            }
+          }
+
           const priceValue =
             typeof p.price === 'string' && p.price.trim().length
               ? parseFloat(p.price)

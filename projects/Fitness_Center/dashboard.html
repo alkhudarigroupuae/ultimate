@@ -59,25 +59,6 @@
     </header>
 
     <main>
-        <div class="grid" style="margin-bottom: 3rem; grid-template-columns: repeat(4, 1fr);">
-            <div class="card" style="padding: 1.5rem;">
-                <div style="color: var(--secondary-text); font-size: 0.9rem;">Active Members</div>
-                <div style="font-size: 1.8rem; font-weight: 700; margin-top: 0.5rem;">450</div>
-            </div>
-            <div class="card" style="padding: 1.5rem;">
-                <div style="color: var(--secondary-text); font-size: 0.9rem;">Monthly Revenue</div>
-                <div style="font-size: 1.8rem; font-weight: 700; margin-top: 0.5rem;">65,000 SYP</div>
-            </div>
-            <div class="card" style="padding: 1.5rem;">
-                <div style="color: var(--secondary-text); font-size: 0.9rem;">New Signups</div>
-                <div style="font-size: 1.8rem; font-weight: 700; margin-top: 0.5rem;">+24</div>
-            </div>
-            <div class="card" style="padding: 1.5rem;">
-                <div style="color: var(--secondary-text); font-size: 0.9rem;">Trainers Active</div>
-                <div style="font-size: 1.8rem; font-weight: 700; margin-top: 0.5rem;">8</div>
-            </div>
-        </div>
-
         <!-- Hero Banner Settings -->
         <h2 style="margin-bottom: 1rem;">Website Hero Banner Settings</h2>
         <div class="card" style="margin-bottom: 3rem; padding: 2rem;">
@@ -117,27 +98,6 @@
                 </div>
             </div>
         </div>
-
-        <h2 id="members" style="margin-bottom: 1rem; display:flex; align-items:center; justify-content:space-between;">
-            <span>Members</span>
-            <button id="add-member-btn" class="btn" style="width:auto; border-radius:0px; background:#5D3FD3;">+ Add Member</button>
-        </h2>
-        <div class="card" style="margin-bottom: 3rem; padding: 2rem;">
-            <table class="dashboard-table">
-                <thead>
-                    <tr>
-                        <th>Member ID</th>
-                        <th>Name</th>
-                        <th>Plan</th>
-                        <th>Status</th>
-                        <th style="width:120px;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="members-body"></tbody>
-            </table>
-        </div>
-
-        
 
         <h2>Recent Registrations & Orders</h2>
         <div class="card" style="background: transparent; border: none;">
@@ -363,101 +323,6 @@
 
         // Initialize
         loadSettings();
-        loadMembers();
-        function loadMembers(){
-            const stored = JSON.parse(localStorage.getItem('fitness_members') || 'null');
-            if (Array.isArray(stored) && stored.length) {
-                members = stored;
-            } else {
-                members = defaultMembers.slice();
-            }
-            initMembersCounter();
-            renderMembers();
-        }
-        function renderMembers(){
-            const tbody = document.getElementById('members-body');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-            members.forEach((m, i) => {
-                const tr = document.createElement('tr');
-                const stBg = m.status === 'Active' ? '#fff' : (m.status === 'Pending' ? '#222' : '#444');
-                const stCol = m.status === 'Active' ? '#000' : '#888';
-                const canDelete = m.status !== 'Active';
-                tr.innerHTML = `
-                    <td>${m.id}</td>
-                    <td>${m.name}</td>
-                    <td>${m.plan}</td>
-                    <td><span class="status-badge" style="background:${stBg};color:${stCol};">${m.status}</span></td>
-                    <td>
-                        <button class="btn" data-act="edit" data-i="${i}" style="width:auto;background:#333;border-radius:0px;margin-right:.5rem;">Edit</button>
-                        <button class="btn" data-act="del" data-i="${i}" ${canDelete ? '' : 'disabled'} style="width:auto;background:#7f1d1d;border-radius:0px;opacity:${canDelete ? '1' : '0.4'};cursor:${canDelete ? 'pointer' : 'not-allowed'};">Delete</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-        function persistMembers(){
-            localStorage.setItem('fitness_members', JSON.stringify(members));
-            renderMembers();
-        }
-        function openMemberModal(editIndex){
-            const overlay = document.createElement('div');
-            overlay.id = 'member-modal';
-            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:4000;';
-            const box = document.createElement('div');
-            box.style.cssText = 'background:#111;border:1px solid #333;padding:1.25rem;width:min(420px,92vw);';
-            const isEdit = typeof editIndex==='number';
-            const m = isEdit ? members[editIndex] : {id:'',name:'',plan:'',status:'Active'};
-            const labelId = isEdit && m.id ? m.id : 'Auto on save';
-            box.innerHTML = `
-                <h3 style="margin:0 0 1rem 0;">${isEdit?'Edit Member':'Add Member'}</h3>
-                <label style="display:block;color:#888;font-size:.9rem;margin-bottom:.25rem;">Member ID</label>
-                <div style="width:100%;padding:.6rem;background:#000;border:1px solid #333;color:#888;border-radius:0px;margin-bottom:.6rem;">${labelId}</div>
-                <label style="display:block;color:#888;font-size:.9rem;margin-bottom:.25rem;">Name</label>
-                <input id="mm-name" type="text" value="${m.name || ''}" style="width:100%;padding:.6rem;background:#000;border:1px solid #333;color:#fff;border-radius:0px;margin-bottom:.6rem;">
-                <label style="display:block;color:#888;font-size:.9rem;margin-bottom:.25rem;">Plan</label>
-                <input id="mm-plan" type="text" value="${m.plan || ''}" style="width:100%;padding:.6rem;background:#000;border:1px solid #333;color:#fff;border-radius:0px;margin-bottom:.6rem;">
-                <label style="display:block;color:#888;font-size:.9rem;margin-bottom:.25rem;">Status</label>
-                <select id="mm-status" style="width:100%;padding:.6rem;background:#000;border:1px solid #333;color:#fff;border-radius:0px;margin-bottom:1rem;">
-                    <option ${m.status==='Active'?'selected':''}>Active</option>
-                    <option ${m.status==='Pending'?'selected':''}>Pending</option>
-                    <option ${m.status==='Suspended'?'selected':''}>Suspended</option>
-                </select>
-                <div style="display:flex;gap:.5rem;justify-content:flex-end;">
-                    <button id="mm-cancel" class="btn" style="width:auto;background:#333;border-radius:0px;">Cancel</button>
-                    <button id="mm-save" class="btn" style="width:auto;background:#5D3FD3;border-radius:0px;">Save</button>
-                </div>
-            `;
-            overlay.appendChild(box);
-            document.body.appendChild(overlay);
-            box.querySelector('#mm-cancel').onclick = () => overlay.remove();
-            box.querySelector('#mm-save').onclick = () => {
-                const idVal = isEdit && m.id ? m.id : nextMemberId();
-                const data = {
-                    id: idVal,
-                    name: box.querySelector('#mm-name').value.trim(),
-                    plan: box.querySelector('#mm-plan').value.trim(),
-                    status: box.querySelector('#mm-status').value
-                };
-                if (!data.id || !data.name || !data.plan) return;
-                if (isEdit) members[editIndex] = data; else members.push(data);
-                persistMembers();
-                overlay.remove();
-            };
-        }
-        document.addEventListener('click', (e) => {
-            const t = e.target;
-            if (t && t.id === 'add-member-btn') { openMemberModal(); }
-            if (t && t.dataset && t.dataset.act === 'edit') { openMemberModal(parseInt(t.dataset.i,10)); }
-            if (t && t.dataset && t.dataset.act === 'del') {
-                const idx = parseInt(t.dataset.i,10);
-                const m = members[idx];
-                if (!m || m.status === 'Active') return;
-                members.splice(idx,1);
-                persistMembers();
-            }
-        });
-
     </script>
 </body>
 </html>

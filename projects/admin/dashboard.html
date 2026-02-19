@@ -270,78 +270,17 @@
         <header>
             <h1>Ultimate Admin Dashboard</h1>
             <div style="display:flex; gap:0.75rem; align-items:center;">
-                <span id="publish-status" style="font-size:0.85rem;color:#9ca3af;"></span>
-                <button class="btn" onclick="publishAll()" style="width:auto;background:#5D3FD3;">Deploy to Public</button>
                 <button class="btn" onclick="logout()" style="width: auto; background: #333;">Logout</button>
             </div>
         </header>
 
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('restocafe')">Restocafé</button>
-            <button class="tab-btn" onclick="switchTab('fitness')">Fitness Center</button>
-            <button class="tab-btn" onclick="switchTab('store')">Ultimate Store</button>
-            <button class="tab-btn" onclick="switchTab('barber')">Barber VIP</button>
-        </div>
-
-        <!-- Restocafe Section -->
-        <div id="restocafe" class="section active">
-            <h2>Restocafé Menu Management</h2>
-            <button class="btn btn-add" onclick="openModal('restocafe')">+ Add New Item</button>
-            <div id="restocafe-list" class="item-list"></div>
-        </div>
-
-        <!-- Fitness Section -->
-        <div id="fitness" class="section">
-            <h2>Fitness Center Plans Management</h2>
-            <button class="btn btn-add" onclick="openModal('fitness')">+ Add New Plan</button>
-            <div id="fitness-list" class="item-list"></div>
-        </div>
-
-        <!-- Store Section -->
-        <div id="store" class="section">
-            <h2>Store Products Management</h2>
-            <button class="btn btn-add" onclick="openModal('store')">+ Add New Product</button>
-            <div id="store-list" class="item-list"></div>
-        </div>
-
-        <!-- Barber Section -->
-        <div id="barber" class="section">
-            <h2>Barber Services Management</h2>
-            <button class="btn btn-add" onclick="openModal('barber')">+ Add New Service</button>
-            <div id="barber-list" class="item-list"></div>
-        </div>
-    </div>
-
-    <!-- Edit/Add Modal -->
-    <div id="edit-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal()">&times;</span>
-            <h2 id="modal-title">Edit Item</h2>
-            <div class="input-group">
-                <label>Name</label>
-                <input type="text" id="edit-name">
-            </div>
-            <div class="input-group">
-                <label>Price</label>
-                <input type="number" id="edit-price">
-            </div>
-            <div class="input-group">
-                <label>Image</label>
-                <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
-                    <img id="edit-thumb" alt="" style="width:80px;height:80px;object-fit:cover;border:1px solid #333;">
-                    <input type="text" id="edit-image" style="display:none;">
-                    <input type="file" id="vercel-file" accept="image/*" style="color:#ccc;">
-                    <button class="btn" id="vercel-upload" style="width:auto;">Upload</button>
-                    <div id="vercel-status" style="color:#aaa; font-size:.9rem;"></div>
-                </div>
-            </div>
-            <div class="input-group">
-                <label>Category</label>
-                <input type="text" id="edit-category">
-            </div>
-            <input type="hidden" id="edit-id">
-            <input type="hidden" id="edit-section">
-            <button class="btn" onclick="saveChanges()">Save Changes</button>
+        <div class="section active">
+            <h2>Menu & Products Management</h2>
+            <p style="margin-top:1rem;color:#9ca3af;max-width:640px;">
+                All menus, products, plans, and services are now managed directly from the
+                WooCommerce admin panel. This dashboard does not add, edit, or delete any
+                items; it is kept only for access control and overview.
+            </p>
         </div>
     </div>
 
@@ -354,17 +293,14 @@
     -->
 
     <script>
-        // Authentication
         function login() {
             const user = document.getElementById('username').value;
             const pass = document.getElementById('password').value;
-            
-            // Hardcoded credentials as requested for simple protection
+
             if (user === 'admin' && pass === 'admin123') {
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('dashboard').style.display = 'block';
                 localStorage.setItem('isAdmin', 'true');
-                loadAllData();
             } else {
                 document.getElementById('login-error').style.display = 'block';
             }
@@ -375,305 +311,16 @@
             location.reload();
         }
 
-        // Tab Switching
-        function switchTab(tabId) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            
-            document.getElementById(tabId).classList.add('active');
-            event.target.classList.add('active');
-        }
-
-        // Data Management
-        let currentData = {
-            restocafe: [],
-            fitness: [],
-            store: [],
-            barber: []
-        };
-
-        async function loadAllData() {
-            await loadFromSharedDb();
-
-            currentData.restocafe = currentData.restocafe.length
-                ? currentData.restocafe
-                : (JSON.parse(localStorage.getItem('restocafe_products')) || defaults.restocafe);
-            renderList('restocafe', currentData.restocafe);
-
-            currentData.fitness = currentData.fitness.length
-                ? currentData.fitness
-                : (JSON.parse(localStorage.getItem('fitness_products')) || defaults.fitness);
-            renderList('fitness', currentData.fitness);
-
-            currentData.store = currentData.store.length
-                ? currentData.store
-                : (JSON.parse(localStorage.getItem('store_products')) || defaults.store);
-            renderList('store', currentData.store);
-
-            currentData.barber = currentData.barber.length
-                ? currentData.barber
-                : (JSON.parse(localStorage.getItem('barber_services')) || defaults.barber);
-            renderList('barber', currentData.barber);
-        }
-
-        async function publishAll() {
+        document.addEventListener('DOMContentLoaded', () => {
             try {
-                const statusEl = document.getElementById('publish-status');
-                if (statusEl) statusEl.textContent = 'Deploying to public...';
-
-                if (!currentData.restocafe.length && !currentData.fitness.length && !currentData.store.length && !currentData.barber.length) {
-                    await loadAllData();
-                }
-
-                const payload = {
-                    restocafe: { products: currentData.restocafe },
-                    fitness: { products: currentData.fitness },
-                    store: { products: currentData.store },
-                    barber: { services: currentData.barber }
-                };
-
-                await fetch('/api/project-data', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (statusEl) statusEl.textContent = 'Published to all public sites.';
-            } catch (_) {
-                const statusEl = document.getElementById('publish-status');
-                if (statusEl) statusEl.textContent = 'Failed to deploy.';
-            }
-        }
-
-        // Since we cannot load multiple data.js files that use same variable names (const products),
-        // We will rely on LocalStorage. If LocalStorage is empty, we might have issues if we don't handle variable scope.
-        // FIX: We should rely on the variable names we just renamed in the previous step?
-        // In previous step we renamed variables inside the files? No, we added 'productsData' but kept 'const products'.
-        // 'const' is block scoped but at top level it's global. Loading multiple scripts with same const name throws error.
-        
-        // IMMEDIATE FIX: We need to rely on localStorage ONLY in this dashboard to avoid conflict, 
-        // OR we need to namespace the data in the original files. 
-        // Given I cannot easily namespace all files now without breaking other things, 
-        // I will assume the user has visited the sites at least once OR I will manually initialize defaults here if LS is empty.
-        
-        // Let's define defaults here as fallback to avoid script conflict
-        const defaults = {
-            restocafe: [
-                {id: 1, name: "Signature Espresso", price: 18, image: "https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?q=80&w=1374&auto=format&fit=crop", category: "Coffee"},
-                {id: 2, name: "Avocado Toast", price: 35, image: "https://images.unsplash.com/photo-1588137372308-15f75323ca8d?q=80&w=1374&auto=format&fit=crop", category: "Breakfast"}
-            ],
-            fitness: [
-                {id: 1, name: "Daily Pass", price: 4000, image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop", category: "Membership"}
-            ],
-            store: [
-                {id: 1, name: "Ultimate Hoodie", price: 120, image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1374&auto=format&fit=crop", category: "Apparel"}
-            ],
-            barber: [
-                {id: 1, name: "Classic Haircut", price: 60, image: "https://images.unsplash.com/photo-1599351431202-6e0c06e7af1f?q=80&w=1470&auto=format&fit=crop", category: "Hair"}
-            ]
-        };
-
-        async function loadFromSharedDb() {
-            try {
-                const resp = await fetch('/api/project-data', { cache: 'no-store' });
-                if (resp.ok) {
-                    const json = await resp.json();
-                    if (json && typeof json === 'object') {
-                        if (Array.isArray(json.restocafe?.products)) currentData.restocafe = json.restocafe.products;
-                        if (Array.isArray(json.fitness?.products)) currentData.fitness = json.fitness.products;
-                        if (Array.isArray(json.store?.products)) currentData.store = json.store.products;
-                        if (Array.isArray(json.barber?.services)) currentData.barber = json.barber.services;
-                    }
+                if (localStorage.getItem('isAdmin') === 'true') {
+                    const overlay = document.getElementById('login-overlay');
+                    const dash = document.getElementById('dashboard');
+                    if (overlay) overlay.style.display = 'none';
+                    if (dash) dash.style.display = 'block';
                 }
             } catch (_) {}
-        }
-
-
-        function renderList(section, items) {
-            const container = document.getElementById(`${section}-list`);
-            container.innerHTML = '';
-            
-            items.forEach((item, index) => {
-                const card = document.createElement('div');
-                card.className = 'item-card';
-                card.innerHTML = `
-                    <img src="${item.image}" class="item-img" onerror="this.src='https://via.placeholder.com/80'">
-                    <div class="item-details">
-                        <h3>${item.name}</h3>
-                        <p>${item.category} - ${item.price.toLocaleString()}</p>
-                    </div>
-                    <div class="actions">
-                        <button class="btn btn-edit" onclick="openEditModal('${section}', ${index})">Edit</button>
-                        <button class="btn btn-delete" onclick="deleteItem('${section}', ${index})">Delete</button>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        // Add/Edit Logic
-        function openModal(section) {
-            document.getElementById('modal-title').innerText = 'Add New Item';
-            document.getElementById('edit-id').value = ''; // Empty ID means new
-            document.getElementById('edit-section').value = section;
-            document.getElementById('edit-name').value = '';
-            document.getElementById('edit-price').value = '';
-            document.getElementById('edit-image').value = '';
-            document.getElementById('edit-category').value = '';
-            document.getElementById('edit-modal').classList.add('active');
-        }
-
-        function openEditModal(section, index) {
-            const item = currentData[section][index];
-            document.getElementById('modal-title').innerText = 'Edit Item';
-            document.getElementById('edit-id').value = index; // Use index as ID for simplicity
-            document.getElementById('edit-section').value = section;
-            document.getElementById('edit-name').value = item.name;
-            document.getElementById('edit-price').value = item.price;
-            document.getElementById('edit-image').value = item.image;
-            const th = document.getElementById('edit-thumb'); if (th) th.src = item.image || '';
-            document.getElementById('edit-category').value = item.category;
-            document.getElementById('edit-modal').classList.add('active');
-        }
-
-        function closeModal() {
-            document.getElementById('edit-modal').classList.remove('active');
-        }
-
-        function saveChanges() {
-            const section = document.getElementById('edit-section').value;
-            const index = document.getElementById('edit-id').value;
-            const name = document.getElementById('edit-name').value;
-            const price = parseFloat(document.getElementById('edit-price').value);
-            const image = document.getElementById('edit-image').value;
-            const category = document.getElementById('edit-category').value;
-
-            const newItem = {
-                id: Date.now(), // Simple ID gen
-                name,
-                price,
-                image,
-                category
-            };
-
-            if (index === '') {
-                // Add new
-                currentData[section].push(newItem);
-            } else {
-                // Update existing
-                currentData[section][index] = { ...currentData[section][index], name, price, image, category };
-            }
-
-            // Save to LocalStorage
-            let key = '';
-            if (section === 'restocafe') key = 'restocafe_products';
-            if (section === 'fitness') key = 'fitness_products';
-            if (section === 'store') key = 'store_products';
-            if (section === 'barber') key = 'barber_services';
-
-            localStorage.setItem(key, JSON.stringify(currentData[section]));
-
-            // Save to shared DB (single JSON for كل 4 محلات)
-            try {
-                const payload = {
-                    restocafe: { products: currentData.restocafe },
-                    fitness: { products: currentData.fitness },
-                    store: { products: currentData.store },
-                    barber: { services: currentData.barber }
-                };
-                await fetch('/api/project-data', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-            } catch (_) {}
-
-            renderList(section, currentData[section]);
-            closeModal();
-        }
-
-        function deleteItem(section, index) {
-            if(confirm('Are you sure you want to delete this item?')) {
-                currentData[section].splice(index, 1);
-                
-                let key = '';
-                if (section === 'restocafe') key = 'restocafe_products';
-                if (section === 'fitness') key = 'fitness_products';
-                if (section === 'store') key = 'store_products';
-                if (section === 'barber') key = 'barber_services';
-
-                localStorage.setItem(key, JSON.stringify(currentData[section]));
-
-                try {
-                    const payload = {
-                        restocafe: { products: currentData.restocafe },
-                        fitness: { products: currentData.fitness },
-                        store: { products: currentData.store },
-                        barber: { services: currentData.barber }
-                    };
-                    await fetch('/api/project-data', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                } catch (_) {}
-
-                renderList(section, currentData[section]);
-            }
-        }
-
-        // Vercel Blob integration
-        async function uploadToVercel(file) {
-            const base = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:3001' : '';
-            const resp = await fetch(base + '/api/blob-upload', {
-                method: 'POST',
-                headers: {
-                    'x-filename': file.name,
-                    'content-type': file.type || 'application/octet-stream'
-                },
-                body: file
-            });
-            if (!resp.ok) throw new Error('Upload failed');
-            const data = await resp.json();
-            return data.url;
-        }
-
-        function bindVercelUpload() {
-            const btn = document.getElementById('vercel-upload');
-            if (!btn) return;
-            btn.addEventListener('click', async () => {
-                const statusEl = document.getElementById('vercel-status');
-                statusEl.textContent = '';
-                const file = document.getElementById('vercel-file')?.files?.[0];
-                if (!file) { statusEl.textContent = 'اختر صورة'; return; }
-                if (file.size > 20 * 1024 * 1024) { statusEl.textContent = 'الملف أكبر من 20MB'; return; }
-                statusEl.textContent = 'جاري الرفع...';
-                try {
-                    const url = await uploadToVercel(file);
-                    document.getElementById('edit-image').value = url;
-                    const th = document.getElementById('edit-thumb'); if (th) th.src = url;
-                    statusEl.textContent = 'تم الرفع';
-                } catch (e) {
-                    try {
-                        const reader = new FileReader();
-                        reader.onload = () => {
-                            document.getElementById('edit-image').value = reader.result || '';
-                            const th = document.getElementById('edit-thumb'); if (th) th.src = reader.result || '';
-                            statusEl.textContent = 'استخدام data URL';
-                        };
-                        reader.onerror = () => { statusEl.textContent = 'فشل الرفع'; };
-                        reader.readAsDataURL(file);
-                    } catch(_) {
-                        statusEl.textContent = 'فشل الرفع';
-                    }
-                }
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', bindVercelUpload);
-
-        // Initial Load (Wait for user interaction to avoid issues?)
-        // Better to load only after login
+        });
     </script>
 </body>
 </html>

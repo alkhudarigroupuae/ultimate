@@ -55,8 +55,32 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  res.writeHead(200, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ ok: true }));
+  if (req.method === 'GET') {
+    const urlPath = (req.url || '/').split('?')[0] || '/';
+    const safePath = urlPath === '/' ? '/index.html' : urlPath;
+    const filePath = path.join(__dirname, decodeURIComponent(safePath.replace(/^\/+/, '')));
+    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+      const ext = path.extname(filePath).toLowerCase();
+      const mime =
+        {
+          '.html': 'text/html; charset=utf-8',
+          '.css': 'text/css; charset=utf-8',
+          '.js': 'text/javascript; charset=utf-8',
+          '.json': 'application/json; charset=utf-8',
+          '.png': 'image/png',
+          '.jpg': 'image/jpeg',
+          '.jpeg': 'image/jpeg',
+          '.webp': 'image/webp',
+          '.svg': 'image/svg+xml'
+        }[ext] || 'application/octet-stream';
+      res.writeHead(200, { 'Content-Type': mime });
+      fs.createReadStream(filePath).pipe(res);
+      return;
+    }
+  }
+
+  res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+  res.end('Not Found');
 });
 
 const PORT = 3001;
@@ -64,4 +88,3 @@ server.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`Local upload server listening at http://localhost:${PORT}`);
 });
-
